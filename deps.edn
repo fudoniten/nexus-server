@@ -11,9 +11,8 @@
         com.github.seancorfield/honeysql { :mvn/version "2.4.972" }
 
         org.fudo/nexus.crypto {
-                               :git/url "https://git.fudo.org/fudo-public/nexus.git"
+                               :git/url "https://git.fudo.org/fudo-public/nexus-crypto.git"
                                :sha "a3870897ea6a0fa0eed18d0125a31a5c73b25649"
-                               :local/root "./crypto"
                                }
 
         org.fudo/fudo-clojure {
