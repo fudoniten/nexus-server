@@ -19,6 +19,7 @@
           nexus-server = helpers.packages."${system}".mkClojureBin {
             name = "org.fudo/nexus-server";
             primaryNamespace = "nexus.server.cli";
+            src = ./.;
           };
         };
 

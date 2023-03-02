@@ -111,11 +111,11 @@
         "utils": "utils_2"
       },
       "locked": {
-        "lastModified": 1677790752,
-        "narHash": "sha256-0fUgUjzq1o6BwZaYGLb1uIMbylPVVUxXeIoxWrjlfwI=",
+        "lastModified": 1677791113,
+        "narHash": "sha256-PKf/JY4SCraPdZseHtXWb52wu+t/2UJA0Dx2ATb7PCM=",
         "ref": "refs/heads/master",
-        "rev": "576376f985d6adfa2eda3a6d7dff9d26c64b1123",
-        "revCount": 28,
+        "rev": "5a1756832e7394120aec0e3a85b31affd48abf16",
+        "revCount": 29,
         "type": "git",
         "url": "https://git.fudo.org/fudo-public/nix-helpers.git"
       },
