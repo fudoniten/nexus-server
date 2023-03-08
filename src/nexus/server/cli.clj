@@ -66,7 +66,7 @@
                         :database
                         :database-user
                         :database-password-file
-                        :database-hostname
+                        :database-host
                         :database-port
                         :listen-host
                         :listen-port
