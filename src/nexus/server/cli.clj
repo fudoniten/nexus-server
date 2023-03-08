@@ -31,7 +31,9 @@
     "Hostname or IP address on which to listen."]
 
    ["-p" "--listen-port PORT"
-    "Port on which to listen for incoming requests."]])
+    "Port on which to listen for incoming requests."]
+
+   ["-v" "--verbose" "Verbose output."]])
 
 (defn- usage
   ([summary] (usage summary []))
@@ -65,11 +67,15 @@
                        :database-hostname
                        :database-port
                        :listen-host
-                       :listen-port]
+                       :listen-port
+                       :verbose]
         {:keys [options _ errors summary]}
         (parse-opts args required-keys cli-opts)]
     (when (seq errors)    (msg-quit 1 (usage summary errors)))
     (when (:help options) (msg-quit 0 (usage summary)))
+    (when (:verbose options)
+      (println "Options:")
+      (println (str/join "\n" (map (fn [[k v]] (str "  " (name k) ": " v)) options))))
     (let [authenticator (auth/read-key-collection (:host-keys options))
           store         (sql-store/connect options)
           app           (server/create-app :authenticator authenticator :data-store store)]
