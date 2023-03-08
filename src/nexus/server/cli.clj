@@ -34,7 +34,8 @@
    ["-p" "--listen-port PORT"
     "Port on which to listen for incoming requests."]
 
-   ["-v" "--verbose" "Verbose output."]])
+   ["-v" "--verbose" "Verbose output."
+    :default false]])
 
 (defn- usage
   ([summary] (usage summary []))
