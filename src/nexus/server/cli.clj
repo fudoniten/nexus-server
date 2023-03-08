@@ -40,8 +40,8 @@
   ([summary errors] (->> (concat errors
                                  ["usage: nexus [opts]"
                                   ""
-                                  "Options:"]
-                                 summary)
+                                  "Options:"
+                                  summary])
                          (str/join \newline))))
 
 (defn- msg-quit [status msg]
@@ -69,13 +69,14 @@
                        :listen-host
                        :listen-port
                        :verbose]
+
         {:keys [options _ errors summary]}
         (parse-opts args required-keys cli-opts)]
     (when (seq errors)    (msg-quit 1 (usage summary errors)))
     (when (:help options) (msg-quit 0 (usage summary)))
     (when (:verbose options)
       (println "Options:")
-      (println (str/join "\n" (map (fn [[k v]] (str "  " (name k) ": " v)) options))))
+      (println (str/join \newline (map (fn [[k v]] (str "  " (name k) ": " v)) options))))
     (let [authenticator (auth/read-key-collection (:host-keys options))
           store         (sql-store/connect options)
           app           (server/create-app :authenticator authenticator :data-store store)]
