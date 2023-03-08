@@ -72,6 +72,7 @@
 
         {:keys [options _ errors summary]}
         (parse-opts args required-keys cli-opts)]
+    (println (str "keys: " (str/join ", " (map name (keys options)))))
     (when (seq errors)    (msg-quit 1 (usage summary errors)))
     (when (:help options) (msg-quit 0 (usage summary)))
     (when (:verbose options)
