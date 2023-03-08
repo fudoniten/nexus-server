@@ -1,7 +1,6 @@
 (ns nexus.server
   (:require [reitit.ring :as ring]
             [clojure.data.json :as json]
-            [clojure.pprint :refer [pprint]]
             [clojure.string :as str]
             [nexus.authenticator :as auth]
             [nexus.datastore :as store]
@@ -151,5 +150,5 @@
                    ["/ipv6" {:put {:handler (set-host-ipv6 data-store)}
                              :get {:handler (get-host-ipv6 data-store)}}]
                    ["/sshfps" {:put {:handler (set-host-sshfps data-store)}
-                               :get {:handler (get-host-sshfps data-store)}}]]]]
-                (ring/create-default-handler))))
+                               :get {:handler (get-host-sshfps data-store)}}]]]])
+   (ring/create-default-handler)))
