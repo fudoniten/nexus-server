@@ -4,7 +4,8 @@
             [clojure.string :as str]
             [nexus.sql-datastore :as sql-store]
             [nexus.authenticator :as auth]
-            [ring.adapter.jetty :refer [run-jetty]])
+            [ring.adapter.jetty :refer [run-jetty]]
+            [clojure.set :as set])
   (:gen-class))
 
 (def cli-opts
@@ -51,23 +52,24 @@
 (defn- parse-opts [args required cli-opts]
   (let [{:keys [options]
          :as result}     (cli/parse-opts args cli-opts)
+        missing          (set/difference required (-> options keys set))
         missing-errors   (map #(format "missing required parameter: %s" %)
-                              (filter (partial contains? options) required))]
+                              missing)]
     (update result :errors concat missing-errors)))
 
 (defn serve [app port]
   (run-jetty app { :port port }))
 
 (defn -main [& args]
-  (let [required-keys [:host-keys
-                       :database
-                       :database-user
-                       :database-password-file
-                       :database-hostname
-                       :database-port
-                       :listen-host
-                       :listen-port
-                       :verbose]
+  (let [required-keys #{:host-keys
+                        :database
+                        :database-user
+                        :database-password-file
+                        :database-hostname
+                        :database-port
+                        :listen-host
+                        :listen-port
+                        :verbose}
         {:keys [options _ errors summary]}
         (parse-opts args required-keys cli-opts)]
     (println (str "keys: " (str/join ", " (map name (keys options)))))
