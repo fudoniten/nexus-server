@@ -51,9 +51,8 @@
 (defn- parse-opts [args required cli-opts]
   (let [{:keys [options]
          :as result}     (cli/parse-opts args cli-opts)
-        label-missing    (comp (filter (partial contains? options))
-                               (map #(format "missing required parameter: %s" %)))
-        missing-errors   (into [] label-missing required)]
+        missing-errors   (map #(format "missing required parameter: %s" %)
+                              (filter (partial contains? options) required))]
     (update result :errors concat missing-errors)))
 
 (defn serve [app port]
@@ -69,7 +68,6 @@
                        :listen-host
                        :listen-port
                        :verbose]
-
         {:keys [options _ errors summary]}
         (parse-opts args required-keys cli-opts)]
     (println (str "keys: " (str/join ", " (map name (keys options)))))
