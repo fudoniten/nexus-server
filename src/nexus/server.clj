@@ -123,14 +123,14 @@
     (auth/validate-signature authenticator host req-str access-signature)))
 
 (defn- make-host-signature-authenticator [authenticator]
-  (fn [handler _]
+  (fn [handler]
     (fn [req]
       (if (authenticate-request authenticator req)
         (handler req)
         { :status 401 :body "rejected: request signature invalid" }))))
 
 (defn- make-timing-validator [max-diff]
-  (fn [handler _]
+  (fn [handler]
     (fn [{{:keys [access-timestamp]} :headers
          :as req}]
       (let [timestamp (parse-epoch-timestamp access-timestamp)
