@@ -99,10 +99,10 @@
         :body {:error (format "an unknown error has occurred: %s"
                               (.toString e))}}))))
 
-(defn- decode-body [handler _]
+(defn- decode-body [handler]
   (fn [req] (handler (update req :body json/read-str))))
 
-(defn- encode-body [handler _]
+(defn- encode-body [handler]
   (fn [req]
     (let [resp (handler req)]
       (assoc resp :body (json/write-str (:body resp))))))
