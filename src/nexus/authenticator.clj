@@ -31,11 +31,14 @@
   (with-open [file (io/reader filename)]
     (json/read file { :key-fn keyword })))
 
-(defn- convert-keys [key-col]
+(defn- decode-keys [key-col]
   (into {} (for [[signer key] key-col]
              [signer (crypto/decode-key key)])))
 
+(defn make-authenticator [client-map]
+  (Authenticator. (decode-keys client-map)))
+
 (defn read-key-collection [filename]
-  (Authenticator. (-> filename
-                      (read-key-collection-file)
-                      (convert-keys))))
+  (-> filename
+      (read-key-collection-file)
+      (make-authenticator)))

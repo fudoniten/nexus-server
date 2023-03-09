@@ -112,17 +112,20 @@
 (defn- set-host-ipv4-impl [store params ip]
   (if (host-has-ipv4? store params)
     (update-host-ipv4 store params ip)
-    (insert-host-ipv4 store params ip)))
+    (insert-host-ipv4 store params ip))
+  ip)
 
 (defn- set-host-ipv6-impl [store params ip]
   (if (host-has-ipv6? store params)
     (update-host-ipv6 store params ip)
-    (insert-host-ipv6 store params ip)))
+    (insert-host-ipv6 store params ip))
+  ip)
 
 (defn- set-host-sshpfs-impl [store params sshfps]
   (exec! store
          (delete-host-sshfps-sql params)
-         (insert-host-sshfps-sql params sshfps)))
+         (insert-host-sshfps-sql params sshfps))
+  sshfps)
 
 (defn- get-record-contents-sql [{:keys [record-type domain host]}]
   (let [fqdn (format "%s.%s" host domain)]

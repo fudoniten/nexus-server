@@ -100,12 +100,20 @@
                               (.toString e))}}))))
 
 (defn- decode-body [handler]
-  (fn [req] (handler (update req :body json/read-str))))
+  (fn [req]
+    (if (:body req)
+      (handler (update req :body json/read-str))
+      (handler req))))
 
 (defn- encode-body [handler]
   (fn [req]
     (let [resp (handler req)]
       (assoc resp :body (json/write-str (:body resp))))))
+
+(defn- keywordize-headers [handler]
+  (fn [req]
+    (handler (update req :headers
+                     #(update-keys (pthru %) keyword)))))
 
 (defn- build-request-string [& {:keys [body method uri timestamp]}]
   (str (-> method (name) (str/upper-case))
@@ -124,25 +132,32 @@
 
 (defn- make-host-signature-authenticator [authenticator]
   (fn [handler]
-    (fn [req]
-      (if (authenticate-request authenticator req)
-        (handler req)
-        { :status 401 :body "rejected: request signature invalid" }))))
+    (fn [{{:keys [access-signature]} :headers
+         :as req}]
+      (if (nil? access-signature)
+        { :status 406 :body "rejected: missing request signature" }
+        (if (authenticate-request authenticator req)
+          (handler req)
+          { :status 401 :body "rejected: request signature invalid" })))))
+
+(defn pthru [o] (clojure.pprint/pprint o) o)
 
 (defn- make-timing-validator [max-diff]
   (fn [handler]
     (fn [{{:keys [access-timestamp]} :headers
          :as req}]
-      (let [timestamp (parse-epoch-timestamp access-timestamp)
-            current-timestamp (current-epoch-timestamp)
-            time-diff (abs (- timestamp current-timestamp))]
-        (if (> time-diff max-diff)
-          { :status 412 :body "rejected: request timestamp out of date" }
-          (handler req))))))
+      (if (nil? access-timestamp)
+        { :status 406 :body "rejected: missing request timestamp" }
+        (let [timestamp (parse-epoch-timestamp access-timestamp)
+              current-timestamp (current-epoch-timestamp)
+              time-diff (abs (- timestamp current-timestamp))]
+          (if (> time-diff max-diff)
+            { :status 412 :body "rejected: request timestamp out of date" }
+            (handler req)))))))
 
 (defn create-app [& {:keys [authenticator data-store max-delay]}]
   (ring/ring-handler
-   (ring/router ["/api" {:middleware [decode-body encode-body (make-timing-validator max-delay)]}
+   (ring/router ["/api" {:middleware [decode-body encode-body keywordize-headers (make-timing-validator max-delay)]}
                  ["/:domain"
                   ["/:host" {:middleware [(make-host-signature-authenticator authenticator)]}
                    ["/ipv4" {:put {:handler (set-host-ipv4 data-store)}
