@@ -82,4 +82,4 @@
     (let [authenticator (auth/read-key-collection (:host-keys options))
           store         (sql-store/connect options)
           app           (server/create-app :authenticator authenticator :data-store store)]
-      (serve app (:port options)))))
+      (serve app (:listen-port options)))))
