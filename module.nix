@@ -13,12 +13,12 @@ in {
   config = mkIf cfg.enable {
     services.nginx = {
       enable = true;
-      virtualHosts."${cfg.hostname}" = {
+      virtualHosts = genAttrs cfg.hostnames (_: {
         enableACME = true;
         forceSSL = true;
 
         locations."/".proxyPass = "http://127.0.0.1:${cfg.internal-port}";
-      };
+      });
     };
 
     systemd.services.nexus-server = {
