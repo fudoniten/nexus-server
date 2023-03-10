@@ -33,7 +33,8 @@
     "Hostname or IP address on which to listen."]
 
    ["-p" "--listen-port PORT"
-    "Port on which to listen for incoming requests."]
+    "Port on which to listen for incoming requests."
+    :parse-fn #(Integer/parseInt %)]
 
    ["-v" "--verbose" "Verbose output."
     :default false]])
