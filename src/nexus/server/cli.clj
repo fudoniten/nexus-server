@@ -26,7 +26,7 @@
 
    ["-P" "--database-port DB_PORT"
     "Port of the Postgresql server backing PowerDNS."
-    :parse-fn Integer/parseInt
+    :parse-fn #(Integer/parseInt %)
     :default 5432]
 
    ["-h" "--listen-host HOST"
