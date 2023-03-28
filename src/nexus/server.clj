@@ -2,6 +2,7 @@
   (:require [reitit.ring :as ring]
             [clojure.data.json :as json]
             [clojure.string :as str]
+            [clojure.pprint :refer [pprint]]
             [nexus.authenticator :as auth]
             [nexus.datastore :as store]
             [slingshot.slingshot :refer [try+]]
@@ -102,12 +103,14 @@
         :body {:error (format "an unknown error has occurred: %s"
                               (.toString e))}}))))
 
+(defn- pthru [o] (pprint o) o)
+
 (defn- decode-body [handler]
   (fn [{:keys [body] :as req}]
     (if body
       (let [body-str (slurp body)]
         (handler (-> req
-                     (assoc :payload (json/read-str body-str))
+                     (assoc :payload (json/read-str (pthru body-str)))
                      (assoc :body-str body-str))))
       (handler (-> req (assoc :body-str ""))))))
 
