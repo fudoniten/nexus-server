@@ -10,6 +10,7 @@
         slingshot/slingshot { :mvn/version "0.12.2" }
         com.github.seancorfield/next.jdbc { :mvn/version "1.3.847" }
         com.github.seancorfield/honeysql { :mvn/version "2.4.972" }
+        org.postgresql/postgresql { :mvn/version "42.6.0" }
 
         org.fudo/nexus.crypto {
                                :git/url "https://git.fudo.org/fudo-public/nexus-crypto.git"
