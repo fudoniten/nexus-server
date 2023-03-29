@@ -137,7 +137,7 @@
                                       :method request-method
                                       :uri uri
                                       :timestamp access-timestamp)]
-    (auth/validate-signature authenticator (keyword host) req-str access-signature)))
+    (auth/validate-signature authenticator (keyword host) (pthru req-str) access-signature)))
 
 (defn- make-host-signature-authenticator [authenticator]
   (fn [handler]
