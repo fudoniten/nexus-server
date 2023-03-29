@@ -107,6 +107,7 @@
 
 (defn- decode-body [handler]
   (fn [{:keys [body] :as req}]
+    (pthru req)
     (if body
       (let [body-str (slurp body)]
         (handler (-> req
