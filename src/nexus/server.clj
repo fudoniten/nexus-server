@@ -168,7 +168,8 @@
             { :status 412 :body "rejected: request timestamp out of date" }
             (handler req)))))))
 
-(defn create-app [& {:keys [authenticator data-store max-delay]}]
+(defn create-app [& {:keys [authenticator data-store max-delay]
+                     :or   {max-delay 60}}]
   (ring/ring-handler
    (ring/router ["/api" {:middleware [keywordize-headers decode-body encode-body (make-timing-validator max-delay)]}
                  ["/:domain"
