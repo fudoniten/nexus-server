@@ -103,8 +103,6 @@
         :body {:error (format "an unknown error has occurred: %s"
                               (.toString e))}}))))
 
-(defn- pthru [o] (pprint o) o)
-
 (defn- decode-body [handler]
   (fn [{:keys [body] :as req}]
     (pthru req)
