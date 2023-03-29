@@ -9,8 +9,6 @@
             [fudo-clojure.ip :as ip]
             [fudo-clojure.common :refer [current-epoch-timestamp parse-epoch-timestamp]]))
 
-(defn pthru [o] (clojure.pprint/pprint o) o)
-
 (defn- set-host-ipv4 [store]
   (fn [{:keys [payload]
        {:keys [host domain]} :path-params}]
@@ -105,7 +103,6 @@
 
 (defn- decode-body [handler]
   (fn [{:keys [body] :as req}]
-    (pthru req)
     (if body
       (let [body-str (slurp body)]
         (handler (-> req
@@ -137,7 +134,7 @@
                                       :method request-method
                                       :uri uri
                                       :timestamp access-timestamp)]
-    (auth/validate-signature authenticator (keyword host) (pthru req-str) access-signature)))
+    (auth/validate-signature authenticator (keyword host) req-str access-signature)))
 
 (defn- make-host-signature-authenticator [authenticator]
   (fn [handler]
@@ -168,10 +165,23 @@
             { :status 412 :body "rejected: request timestamp out of date" }
             (handler req)))))))
 
-(defn create-app [& {:keys [authenticator data-store max-delay]
-                     :or   {max-delay 60}}]
+(defn- log-requests [verbose]
+  (fn [handler]
+    (fn [req]
+      (when verbose (pprint req))
+      (let [result (handler req)]
+        (when verbose (pprint result))
+        result))))
+
+(defn create-app [& {:keys [authenticator data-store max-delay verbose]
+                     :or   {max-delay 60
+                            verbose   false}}]
   (ring/ring-handler
-   (ring/router ["/api" {:middleware [keywordize-headers decode-body encode-body (make-timing-validator max-delay)]}
+   (ring/router ["/api" {:middleware [keywordize-headers
+                                      decode-body
+                                      encode-body
+                                      (make-timing-validator max-delay)
+                                      (log-requests verbose)]}
                  ["/:domain"
                   ["/:host" {:middleware [(make-host-signature-authenticator authenticator)]}
                    ["/ipv4" {:put {:handler (set-host-ipv4 data-store)}

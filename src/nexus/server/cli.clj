@@ -83,5 +83,7 @@
       (println (str/join \newline (map (fn [[k v]] (str "  " (name k) ": " v)) options))))
     (let [authenticator (auth/read-key-collection (:host-keys options))
           store         (sql-store/connect options)
-          app           (server/create-app :authenticator authenticator :data-store store)]
+          app           (server/create-app :authenticator authenticator
+                                           :data-store    store
+                                           :verbose       (:verbose options))]
       (serve app (:listen-port options)))))
