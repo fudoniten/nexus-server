@@ -7,10 +7,9 @@
             [clojure.string :as str]))
 
 (defn- exec! [store & sqls]
-  (let [ds (:datasource store)]
-    (jdbc/with-transaction [tx (jdbc/get-connection ds)]
-      (doseq [sql sqls]
-        (jdbc/execute! tx (sql/format sql))))))
+  (jdbc/with-transaction [tx (jdbc/get-connection store)]
+    (doseq [sql sqls]
+      (jdbc/execute! tx (sql/format sql)))))
 
 (defn- host-has-record-sql [{:keys [domain host record-type]}]
   (let [fqdn (format "%s.%s" host domain)]
