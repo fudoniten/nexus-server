@@ -106,7 +106,7 @@
     (if body
       (let [body-str (slurp body)]
         (handler (-> req
-                     (assoc :payload (json/read-str (pthru body-str)))
+                     (assoc :payload (json/read-str body-str))
                      (assoc :body-str body-str))))
       (handler (-> req (assoc :body-str ""))))))
 
