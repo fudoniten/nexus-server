@@ -11,7 +11,7 @@
             (when (:verbose store)
               (println (str "executing: " sql)))
             sql)]
-    (jdbc/with-transaction [tx (jdbc/get-connection (:datastore store))]
+    (jdbc/with-transaction [tx (jdbc/get-connection (:datasource store))]
       (doseq [sql sqls]
         (jdbc/execute! tx (log! (sql/format sql)))))))
 
