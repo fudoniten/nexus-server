@@ -17,7 +17,7 @@
 
 (defn- host-has-record-sql [{:keys [domain host record-type]}]
   (let [fqdn (format "%s.%s" host domain)]
-    (-> (select :id)
+    (-> (select :records.id)
         (from :records)
         (join :domains [:= :records.domain_id :domains.id])
         (where [:= :records.name fqdn]
@@ -30,7 +30,7 @@
        (seq)))
 
 (defn- domain-id-sql [domain]
-  (-> (select :id)
+  (-> (select :records.id)
       (from   :domains)
       (where  [:= :name domain])))
 
