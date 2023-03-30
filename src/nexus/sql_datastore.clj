@@ -7,9 +7,13 @@
             [clojure.string :as str]))
 
 (defn- exec! [store & sqls]
-  (jdbc/with-transaction [tx (jdbc/get-connection store)]
-    (doseq [sql sqls]
-      (jdbc/execute! tx (sql/format sql)))))
+  (letfn [(log! [sql]
+            (when (:verbose store)
+              (println (str "executing: " sql)))
+            sql)]
+    (jdbc/with-transaction [tx (jdbc/get-connection (:datastore store))]
+      (doseq [sql sqls]
+        (jdbc/execute! tx (log! (sql/format sql)))))))
 
 (defn- host-has-record-sql [{:keys [domain host record-type]}]
   (let [fqdn (format "%s.%s" host domain)]
@@ -152,33 +156,35 @@
 (defn- get-host-sshfps-impl [store params]
   (exec! store (get-host-sshfps-sql params)))
 
-(defrecord SqlDataStore [datasource]
+(defrecord SqlDataStore [verbose datasource]
 
   datastore/IDataStore
 
-  (set-host-ipv4 [_ domain host ip]
-    (set-host-ipv4-impl datasource
+  (set-host-ipv4 [self domain host ip]
+    (set-host-ipv4-impl self
                         {:domain domain :host host}
                         ip))
-  (set-host-ipv6 [_ domain host ip]
-    (set-host-ipv6-impl datasource
+  (set-host-ipv6 [self domain host ip]
+    (set-host-ipv6-impl self
                         {:domain domain :host host}
                         ip))
-  (set-host-sshfps [_ domain host sshfps]
-    (set-host-sshpfs-impl datasource
-                        {:domain domain :host host}
-                        sshfps))
+  (set-host-sshfps [self domain host sshfps]
+    (set-host-sshpfs-impl self
+                          {:domain domain :host host}
+                          sshfps))
 
-  (get-host-ipv4 [_ domain host]
-    (get-host-ipv4-impl datasource {:domain domain :host host}))
-  (get-host-ipv6 [_ domain host]
-    (get-host-ipv6-impl datasource {:domain domain :host host}))
-  (get-host-sshfps [_ domain host]
-    (get-host-sshfps-impl datasource {:domain domain :host host})))
+  (get-host-ipv4 [self domain host]
+    (get-host-ipv4-impl self {:domain domain :host host}))
+  (get-host-ipv6 [self domain host]
+    (get-host-ipv6-impl self {:domain domain :host host}))
+  (get-host-sshfps [self domain host]
+    (get-host-sshfps-impl self {:domain domain :host host})))
 
-(defn connect [{:keys [database-user database-password-file database-host database-port database]
-                :or {database-port 5432}}]
-  (SqlDataStore. (jdbc/get-datasource {:dbtype   "postgresql"
+(defn connect [{:keys [database-user database-password-file database-host database-port database verbose]
+                :or {database-port 5432
+                     verbose       false}}]
+  (SqlDataStore. verbose
+                 (jdbc/get-datasource {:dbtype   "postgresql"
                                        :dbname   database
                                        :user     database-user
                                        :password (-> database-password-file
