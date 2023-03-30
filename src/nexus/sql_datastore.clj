@@ -26,7 +26,6 @@
 
 (defn- host-has-record? [store params]
   (->> (host-has-record-sql params)
-       (sql/format)
        (exec! store)
        (seq)))
 
