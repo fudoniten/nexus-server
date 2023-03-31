@@ -168,7 +168,13 @@
 (defn- log-requests [verbose]
   (fn [handler]
     (fn [req]
-      (when verbose (pprint req))
+      (when verbose
+        (println (str "incoming "
+                      (-> req :request-method (name))
+                      " request from "
+                      (-> req :headers :x-forwarded-server)
+                      ": "
+                      (-> req :uri))))
       (let [result (handler req)]
         (when verbose (pprint result))
         result))))
