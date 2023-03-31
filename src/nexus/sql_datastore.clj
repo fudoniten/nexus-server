@@ -1,19 +1,32 @@
 (ns nexus.sql-datastore
   (:refer-clojure :exclude [update set delete])
   (:require [honey.sql :as sql]
-            [honey.sql.helpers :refer [select from join where insert-into update values set delete-from]]
+            [honey.sql.helpers :refer [select from join where insert-into update values set delete-from columns]]
             [next.jdbc :as jdbc]
             [nexus.datastore :as datastore]
-            [clojure.string :as str]))
+            [clojure.string :as str])
+  (:import [java.io StringWriter PrintWriter]))
+
+(defn- capture-stack-trace [e]
+  (let [string-writer (StringWriter.)
+        print-writer  (PrintWriter. string-writer)]
+    (.printStackTrace e print-writer)
+    (.flush print-writer)
+    (.toString string-writer)))
 
 (defn- exec! [store & sqls]
   (letfn [(log! [sql]
             (when (:verbose store)
               (println (str "executing: " sql)))
             sql)]
-    (jdbc/with-transaction [tx (jdbc/get-connection (:datasource store))]
-      (doseq [sql sqls]
-        (jdbc/execute! tx (log! (sql/format sql)))))))
+    (try
+      (jdbc/with-transaction [tx (jdbc/get-connection (:datasource store))]
+        (doseq [sql sqls]
+          (jdbc/execute! tx (log! (sql/format sql)))))
+      (catch Exception e
+        (when (:verbose store)
+          (println (capture-stack-trace e))
+          (throw e))))))
 
 (defn- host-has-record-sql [{:keys [domain host record-type]}]
   (let [fqdn (format "%s.%s" host domain)]
@@ -30,9 +43,14 @@
        (seq)))
 
 (defn- domain-id-sql [domain]
-  (-> (select :records.id)
+  (-> (select :id)
       (from   :domains)
       (where  [:= :name domain])))
+
+(defn- domain-id [store domain]
+  (-> (domain-id-sql domain)
+      (exec! store)
+      (first)))
 
 (defn- host-has-ipv4? [store params]
   (host-has-record? store (assoc params :record-type "A")))
@@ -40,14 +58,15 @@
 (defn- host-has-ipv6? [store params]
   (host-has-record? store (assoc params :record-type "AAAA")))
 
-(defn- insert-records-sql [{:keys [host domain record-type contents]}]
+(defn- insert-records-sql [{:keys [host domain domain-id record-type contents]}]
   (let [fqdn (format "%s.%s" host domain)]
     (-> (insert-into :records)
+        (columns :name :type :content :domain_id)
         (values (map (fn [content]
                        {:name      fqdn
                         :type      record-type
                         :content   content
-                        :domain_id (domain-id-sql domain)})
+                        :domain_id domain-id})
                      contents)))))
 
 (defn- insert-host-ipv4-sql [params ip]
@@ -68,11 +87,16 @@
       (assoc :contents sshfps)
       (insert-records-sql)))
 
+(defn- assoc-domain-id [store {:keys [domain] :as params}]
+  (assoc params :domain-id (domain-id store domain)))
+
 (defn- insert-host-ipv4 [store params ip]
-  (exec! store (insert-host-ipv4-sql params ip)))
+  (exec! store
+         (insert-host-ipv4-sql (assoc-domain-id store params) ip)))
 
 (defn- insert-host-ipv6 [store params ip]
-  (exec! store (insert-host-ipv6-sql params ip)))
+    (exec! store
+         (insert-host-ipv6-sql (assoc-domain-id store params) ip)))
 
 (defn- update-record-sql [{:keys [domain host record-type content]}]
   (let [fqdn (format "%s.%s" host domain)]
@@ -124,9 +148,10 @@
   ip)
 
 (defn- set-host-sshpfs-impl [store params sshfps]
-  (exec! store
-         (delete-host-sshfps-sql params)
-         (insert-host-sshfps-sql params sshfps))
+  (let [params-with-domid (assoc-domain-id store params)]
+    (exec! store
+           (delete-host-sshfps-sql params-with-domid)
+           (insert-host-sshfps-sql params-with-domid sshfps)))
   sshfps)
 
 (defn- get-record-contents-sql [{:keys [record-type domain host]}]
