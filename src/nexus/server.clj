@@ -36,7 +36,7 @@
        (when (not (ip/ipv6? ip))
          {:status 400
           :body (format "rejected: not a v6 IP: %s" payload)})
-       (store/set-host-ipv4 store domain host ip)
+       (store/set-host-ipv6 store domain host ip)
        {:status 200 :body (str ip)})
      (catch IllegalArgumentException _
        {:status 400
