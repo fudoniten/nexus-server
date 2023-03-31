@@ -61,7 +61,6 @@
 (defn- insert-records-sql [{:keys [host domain domain-id record-type contents]}]
   (let [fqdn (format "%s.%s" host domain)]
     (-> (insert-into :records)
-        (columns :name :type :content :domain_id)
         (values (map (fn [content]
                        {:name      fqdn
                         :type      record-type
