@@ -37,20 +37,23 @@
                [:= :domains.name domain]
                [:= :records.type record-type]))))
 
-(defn- host-has-record? [store params]
-  (->> (host-has-record-sql params)
-       (exec! store)
-       (seq)))
-
 (defn- domain-id-sql [domain]
   (-> (select :id)
       (from   :domains)
       (where  [:= :name domain])))
 
-(defn- domain-id [store domain]
+(defn- get-domain-id [store domain]
   (-> (domain-id-sql domain)
       (exec! store)
       (first)))
+
+(defn- assoc-domain-id [store {:keys [domain] :as params}]
+  (assoc params :domain-id (get-domain-id store domain)))
+
+(defn- host-has-record? [store params]
+  (->> (host-has-record-sql (assoc-domain-id store params))
+       (exec! store)
+       (seq)))
 
 (defn- host-has-ipv4? [store params]
   (host-has-record? store (assoc params :record-type "A")))
@@ -85,9 +88,6 @@
       (assoc :record-type "SSHFP")
       (assoc :contents sshfps)
       (insert-records-sql)))
-
-(defn- assoc-domain-id [store {:keys [domain] :as params}]
-  (assoc params :domain-id (domain-id store domain)))
 
 (defn- insert-host-ipv4 [store params ip]
   (exec! store
