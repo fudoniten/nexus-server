@@ -50,7 +50,9 @@
   (pthru
    (->> (domain-id-sql domain)
         (exec! store)
-        (first))))
+        (pthru)
+        (first)
+        (pthru))))
 
 (defn- assoc-domain-id [store {:keys [domain] :as params}]
   (assoc params :domain-id (get-domain-id store domain)))
