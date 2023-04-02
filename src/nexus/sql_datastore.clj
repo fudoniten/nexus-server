@@ -4,8 +4,11 @@
             [honey.sql.helpers :refer [select from join where insert-into update values set delete-from columns]]
             [next.jdbc :as jdbc]
             [nexus.datastore :as datastore]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [clojure.pprint :refer [pprint]])
   (:import [java.io StringWriter PrintWriter]))
+
+(defn pthru [o] (pprint o) o)
 
 (defn- capture-stack-trace [e]
   (let [string-writer (StringWriter.)
@@ -43,9 +46,11 @@
       (where  [:= :name domain])))
 
 (defn- get-domain-id [store domain]
-  (-> (domain-id-sql domain)
-      (exec! store)
-      (first)))
+  (print (str "getting domain id for " domain ": "))
+  (pthru
+   (-> (domain-id-sql domain)
+       (exec! store)
+       (first))))
 
 (defn- assoc-domain-id [store {:keys [domain] :as params}]
   (assoc params :domain-id (get-domain-id store domain)))
@@ -84,14 +89,14 @@
       (insert-records-sql)))
 
 (defn- insert-host-sshfps-sql [params sshfps]
-  (-> params
+  (-> parasm
       (assoc :record-type "SSHFP")
       (assoc :contents sshfps)
       (insert-records-sql)))
 
 (defn- insert-host-ipv4 [store params ip]
   (exec! store
-         (insert-host-ipv4-sql (assoc-domain-id store params) ip)))
+         (insert-host-ipv4-sql (pthru (assoc-domain-id store params)) ip)))
 
 (defn- insert-host-ipv6 [store params ip]
     (exec! store
