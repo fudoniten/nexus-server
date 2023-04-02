@@ -58,10 +58,10 @@
       (where  [:= :name domain])))
 
 (defn- get-domain-id [store domain]
-  (->> (domain-id-sql domain)
-       (fetch! store)
-       (pthru)
-       :domains/id))
+  (some->> (domain-id-sql domain)
+           (fetch! store)
+           (first)
+           :domains/id))
 
 (defn- assoc-domain-id [store {:keys [domain] :as params}]
   (assoc params :domain-id (get-domain-id store domain)))
@@ -187,19 +187,21 @@
   (get-record-contents-sql (assoc params :record-type "SSHFP")))
 
 (defn- get-host-ipv4-impl [store params]
-  (->> (get-host-ipv4-sql params)
-       (fetch! store)
-       (pthru)
-       :records/content))
+  (some->> (get-host-ipv4-sql params)
+           (fetch! store)
+           (first)
+           :records/content))
 
 (defn- get-host-ipv6-impl [store params]
-  (->> (get-host-ipv6-sql params)
-       (fetch! store)
-       (pthru)
-       :records/content))
+  (some->> (get-host-ipv6-sql params)
+           (fetch! store)
+           (first)
+           :records/content))
 
 (defn- get-host-sshfps-impl [store params]
-  (pthru (fetch! store (get-host-sshfps-sql params))))
+  (some->> (get-host-sshfps-sql params)
+           (fetch! store)
+           (map :records/content)))
 
 (defrecord SqlDataStore [verbose datasource]
 
