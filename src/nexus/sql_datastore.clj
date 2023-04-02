@@ -89,7 +89,7 @@
       (insert-records-sql)))
 
 (defn- insert-host-sshfps-sql [params sshfps]
-  (-> parasm
+  (-> params
       (assoc :record-type "SSHFP")
       (assoc :contents sshfps)
       (insert-records-sql)))
