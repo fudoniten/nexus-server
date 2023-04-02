@@ -60,14 +60,15 @@
 (defn- get-domain-id [store domain]
   (->> (domain-id-sql domain)
        (fetch! store)
-       (first)))
+       (pthru)
+       :domains/id))
 
 (defn- assoc-domain-id [store {:keys [domain] :as params}]
   (assoc params :domain-id (get-domain-id store domain)))
 
 (defn- host-has-record? [store params]
   (->> (host-has-record-sql params)
-       (exec! store)
+       (fetch! store)
        (seq)))
 
 (defn- host-has-ipv4? [store params]
@@ -188,15 +189,17 @@
 (defn- get-host-ipv4-impl [store params]
   (->> (get-host-ipv4-sql params)
        (fetch! store)
-       (first)))
+       (pthru)
+       :records/content))
 
 (defn- get-host-ipv6-impl [store params]
   (->> (get-host-ipv6-sql params)
        (fetch! store)
-       (first)))
+       (pthru)
+       :records/content))
 
 (defn- get-host-sshfps-impl [store params]
-  (fetch! store (get-host-sshfps-sql params)))
+  (pthru (fetch! store (get-host-sshfps-sql params))))
 
 (defrecord SqlDataStore [verbose datasource]
 
