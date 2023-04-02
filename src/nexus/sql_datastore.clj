@@ -28,8 +28,20 @@
           (jdbc/execute! tx (log! (sql/format sql)))))
       (catch Exception e
         (when (:verbose store)
-          (println (capture-stack-trace e))
-          (throw e))))))
+          (println (capture-stack-trace e)))
+        (throw e)))))
+
+(defn- fetch! [store sql]
+  (letfn [(log! [sql]
+            (when (:verbose store)
+              (println (str "fetching: " sql))
+              sql))]
+    (try
+      (jdbc/execute! (:datasource store) (log! (sql/format sql)))
+      (catch Exception e
+        (when (:verbose store)
+          (println (capture-stack-trace e)))
+        (throw e)))))
 
 (defn- host-has-record-sql [{:keys [domain host record-type]}]
   (let [fqdn (format "%s.%s" host domain)]
@@ -46,11 +58,9 @@
       (where  [:= :name domain])))
 
 (defn- get-domain-id [store domain]
-  (print (str "getting domain id for " domain ": "))
-  (pthru
-   (->> (domain-id-sql domain)
-        (exec! store)
-        (pthru))))
+  (->> (domain-id-sql domain)
+       (fetch! store)
+       (first)))
 
 (defn- assoc-domain-id [store {:keys [domain] :as params}]
   (assoc params :domain-id (get-domain-id store domain)))
@@ -176,13 +186,17 @@
   (get-record-contents-sql (assoc params :record-type "SSHFP")))
 
 (defn- get-host-ipv4-impl [store params]
-  (first (exec! store (get-host-ipv4-sql params))))
+  (->> (get-host-ipv4-sql params)
+       (fetch! store)
+       (first)))
 
 (defn- get-host-ipv6-impl [store params]
-  (first (exec! store (get-host-ipv6-sql params))))
+  (->> (get-host-ipv6-sql params)
+       (fetch! store)
+       (first)))
 
 (defn- get-host-sshfps-impl [store params]
-  (exec! store (get-host-sshfps-sql params)))
+  (fetch! store (get-host-sshfps-sql params)))
 
 (defrecord SqlDataStore [verbose datasource]
 
