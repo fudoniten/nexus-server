@@ -48,9 +48,9 @@
 (defn- get-domain-id [store domain]
   (print (str "getting domain id for " domain ": "))
   (pthru
-   (-> (domain-id-sql domain)
-       (exec! store)
-       (first))))
+   (->> (domain-id-sql domain)
+        (exec! store)
+        (first))))
 
 (defn- assoc-domain-id [store {:keys [domain] :as params}]
   (assoc params :domain-id (get-domain-id store domain)))
