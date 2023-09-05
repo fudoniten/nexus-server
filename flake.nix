@@ -2,7 +2,7 @@
   description = "Nexus Server";
 
   inputs = {
-    nixpkgs.url = "nixpkgs/nixos-22.11";
+    nixpkgs.url = "nixpkgs/nixos-23.05";
     utils.url = "github:numtide/flake-utils";
     helpers = {
       url = "git+https://git.fudo.org/fudo-public/nix-helpers.git";
