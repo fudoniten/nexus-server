@@ -1,27 +1,26 @@
 {
  :paths ["src"]
  :deps {
-        org.clojure/clojure { :mvn/version "1.11.1" }
-        metosin/reitit { :mvn/version "0.5.5" }
-        ring/ring-core { :mvn/version "1.9.6" }
-        ring/ring-jetty-adapter { :mvn/version "1.9.6" }
+        org.clojure/clojure { :mvn/version "1.11.2" }
+        metosin/reitit { :mvn/version "0.6.0" }
+        ring/ring-core { :mvn/version "1.12.1" }
+        ring/ring-jetty-adapter { :mvn/version "1.12.1" }
         ring/ring-mock { :mvn/version "0.4.0" }
-        org.clojure/data.json { :mvn/version "2.4.0" }
+        org.clojure/data.json { :mvn/version "2.5.0" }
         slingshot/slingshot { :mvn/version "0.12.2" }
-        com.github.seancorfield/next.jdbc { :mvn/version "1.3.847" }
-        com.github.seancorfield/honeysql { :mvn/version "2.4.972" }
+        com.github.seancorfield/next.jdbc { :mvn/version "1.3.925" }
+        com.github.seancorfield/honeysql { :mvn/version "2.6.1126" }
         org.postgresql/postgresql { :mvn/version "42.6.0" }
 
         org.fudo/nexus.crypto {
-                               :git/url "https://git.fudo.org/fudo-public/nexus-crypto.git"
-                               :sha "a3870897ea6a0fa0eed18d0125a31a5c73b25649"
+                               :git/url "https://fudo.dev/public/nexus-crypto.git"
+                               :git/sha "e5e7bb018f68b40a4a65bd2cc4e9e1f435e267ab"
                                }
 
         org.fudo/fudo-clojure {
-                               :git/url "https://git.fudo.org/fudo-public/fudo-clojure.git"
-                               :sha "ca14fd98d552d9f83814022b1ae4216ddbadbb4c"
-                               }
-        }
+                               :git/url "https://fudo.dev/public/fudo-clojure.git"
+                               :git/sha "25467fceddcb9c81180ddb83f3e21f9ef21cd07f"
+                               }}
 
  :aliases
  {
@@ -38,8 +37,7 @@
          }
 
   :lint {
-         :replace-deps { clj-kondo/clj-kondo {:mvn/version "2023.02.17"} }
+         :replace-deps { clj-kondo/clj-kondo {:mvn/version "2024.03.13"} }
          :main-opts ["-m" "clj-kondo.main" "--lint" "src"]
          }
-  }
-}
+  }}
