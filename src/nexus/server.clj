@@ -182,6 +182,7 @@
 (defn create-app [& {:keys [authenticator data-store max-delay verbose]
                      :or   {max-delay 60
                             verbose   false}}]
+  (when verbose (println "initializing nexus server app"))
   (ring/ring-handler
    (ring/router ["/api" {:middleware [keywordize-headers
                                       decode-body

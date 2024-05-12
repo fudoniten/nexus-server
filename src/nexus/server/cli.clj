@@ -5,6 +5,7 @@
             [nexus.sql-datastore :as sql-store]
             [nexus.authenticator :as auth]
             [ring.adapter.jetty :refer [run-jetty]]
+            [clojure.core.async :refer [chan >!! go-loop]]
             [clojure.set :as set])
   (:gen-class))
 
@@ -60,8 +61,8 @@
                               missing)]
     (update result :errors concat missing-errors)))
 
-(defn serve [app port]
-  (run-jetty app { :port port }))
+(defn serve! [app {:keys [host port]}]
+  (run-jetty app { :host host :port port :join? false }))
 
 (defn -main [& args]
   (let [required-keys #{:host-keys
@@ -81,9 +82,16 @@
     (when (:verbose options)
       (println "Options:")
       (println (str/join \newline (map (fn [[k v]] (str "  " (name k) ": " v)) options))))
-    (let [authenticator (auth/read-key-collection (:host-keys options))
-          store         (sql-store/connect options)
-          app           (server/create-app :authenticator authenticator
-                                           :data-store    store
-                                           :verbose       (:verbose options))]
-      (serve app (:listen-port options)))))
+    (let [authenticator  (auth/read-key-collection (:host-keys options))
+          store          (sql-store/connect options)
+          app            (server/create-app :authenticator authenticator
+                                            :data-store    store
+                                            :verbose       (:verbose options))
+          catch-shutdown (chan)
+          server         (serve! #'app {:port (:listen-port options)
+                                        :host (:listen-host options)})]
+      (.addShutdownHook (Runtime/getRuntime)
+                        (Thread. (fn [] (>!! catch-shutdown true))))
+      (<!! catch-shutdown)
+      (.stop server)
+      (System/exit 0))))

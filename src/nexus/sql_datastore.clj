@@ -230,6 +230,7 @@
 (defn connect [{:keys [database-user database-password-file database-host database-port database verbose]
                 :or {database-port 5432
                      verbose       false}}]
+  (when verbose (println (str "initializing sql datastore: " database-host ":" database-port "/" database)))
   (SqlDataStore. verbose
                  (jdbc/get-datasource {:dbtype   "postgresql"
                                        :dbname   database
