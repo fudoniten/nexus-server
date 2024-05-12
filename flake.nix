@@ -3,9 +3,18 @@
 
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-23.11";
-    utils.url = "github:numtide/flake-utils";
-    fudo-clojure.url = "git+https://fudo.dev/public/fudo-clojure.git";
-    nexus-crypto.url = "git+https://fudo.dev/public/nexus-crypto.git";
+    utils = {
+      url = "github:numtide/flake-utils";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    fudo-clojure = {
+      url = "git+https://fudo.dev/public/fudo-clojure.git";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    nexus-crypto = {
+      url = "git+https://fudo.dev/public/nexus-crypto.git";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     helpers = {
       url = "git+https://fudo.dev/public/nix-helpers.git";
       inputs.nixpkgs.follows = "nixpkgs";
