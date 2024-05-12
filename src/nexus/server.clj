@@ -188,6 +188,7 @@
                                       encode-body
                                       (make-timing-validator max-delay)
                                       (log-requests verbose)]}
+                 ["/health" {:status 200 :body "ok"}]
                  ["/:domain"
                   ["/:host" {:middleware [(make-host-signature-authenticator authenticator)]}
                    ["/ipv4" {:put {:handler (set-host-ipv4 data-store)}
