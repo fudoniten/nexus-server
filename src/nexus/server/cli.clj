@@ -9,6 +9,8 @@
             [clojure.set :as set])
   (:gen-class))
 
+(def VERSION "0.1.1")
+
 (def cli-opts
   [["-k" "--host-keys HOST_KEYS"
     "File containing host/key pairs, in json format."]
@@ -38,7 +40,9 @@
     :parse-fn #(Integer/parseInt %)]
 
    ["-v" "--verbose" "Verbose output."
-    :default false]])
+    :default false]
+
+   ["-V" "--version" "Print the current version."]])
 
 (defn- usage
   ([summary] (usage summary []))
@@ -76,9 +80,9 @@
                         :verbose}
         {:keys [options _ errors summary]}
         (parse-opts args required-keys cli-opts)]
-    (println (str "keys: " (str/join ", " (map name (keys options)))))
-    (when (seq errors)    (msg-quit 1 (usage summary errors)))
     (when (:help options) (msg-quit 0 (usage summary)))
+    (when (:version options) (msg-quit 0 (format "nexus-server v%s" VERSION)))
+    (when (seq errors)    (msg-quit 1 (usage summary errors)))
     (when (:verbose options)
       (println "Options:")
       (println (str/join \newline (map (fn [[k v]] (str "  " (name k) ": " v)) options))))
@@ -90,6 +94,7 @@
           catch-shutdown (chan)
           server         (serve! #'app {:port (:listen-port options)
                                         :host (:listen-host options)})]
+      (when (:verbose options) (println (format "starting nexus-server v%s" VERSION)))
       (.addShutdownHook (Runtime/getRuntime)
                         (Thread. (fn [] (>!! catch-shutdown true))))
       (<!! catch-shutdown)
