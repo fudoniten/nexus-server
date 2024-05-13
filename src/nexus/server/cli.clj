@@ -92,8 +92,8 @@
                                             :data-store    store
                                             :verbose       (:verbose options))
           catch-shutdown (chan)
-          server         (serve! #'app {:port (:listen-port options)
-                                        :host (:listen-host options)})]
+          server         (serve! app {:port (:listen-port options)
+                                      :host (:listen-host options)})]
       (when (:verbose options) (println (format "starting nexus-server v%s" VERSION)))
       (.addShutdownHook (Runtime/getRuntime)
                         (Thread. (fn [] (>!! catch-shutdown true))))
