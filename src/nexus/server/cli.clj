@@ -5,7 +5,7 @@
             [nexus.sql-datastore :as sql-store]
             [nexus.authenticator :as auth]
             [ring.adapter.jetty :refer [run-jetty]]
-            [clojure.core.async :refer [chan >!! go-loop]]
+            [clojure.core.async :refer [chan >!! <!!]]
             [clojure.set :as set])
   (:gen-class))
 
