@@ -96,7 +96,7 @@
       "inputs": {
         "flake-compat": "flake-compat_2",
         "gitignore": "gitignore_2",
-        "nixpkgs": "nixpkgs_3",
+        "nixpkgs": "nixpkgs_2",
         "utils": "utils_4"
       },
       "locked": {
@@ -117,7 +117,7 @@
       "inputs": {
         "flake-compat": "flake-compat_3",
         "gitignore": "gitignore_3",
-        "nixpkgs": "nixpkgs_4",
+        "nixpkgs": "nixpkgs_3",
         "utils": "utils_6"
       },
       "locked": {
@@ -361,15 +361,17 @@
     "fudo-clojure": {
       "inputs": {
         "helpers": "helpers",
-        "nixpkgs": "nixpkgs_2",
+        "nixpkgs": [
+          "nixpkgs"
+        ],
         "utils": "utils_3"
       },
       "locked": {
-        "lastModified": 1713457607,
-        "narHash": "sha256-lraQtZ5cc6B6zpu1Md89bGE0dJSMHlBptgaLzWYHmJg=",
+        "lastModified": 1715536328,
+        "narHash": "sha256-zybgKj8vdaS8Y/nMaQN3+dKUCjilZm7Aw4kbiSVPDCY=",
         "ref": "refs/heads/master",
-        "rev": "25467fceddcb9c81180ddb83f3e21f9ef21cd07f",
-        "revCount": 80,
+        "rev": "cd19872f77e9d3a435518ab94fd45ab1a48474dd",
+        "revCount": 88,
         "type": "git",
         "url": "https://fudo.dev/public/fudo-clojure.git"
       },
@@ -520,15 +522,17 @@
     "nexus-crypto": {
       "inputs": {
         "helpers": "helpers_3",
-        "nixpkgs": "nixpkgs_5",
+        "nixpkgs": [
+          "nixpkgs"
+        ],
         "utils": "utils_8"
       },
       "locked": {
-        "lastModified": 1713464628,
+        "lastModified": 1715563334,
         "narHash": "sha256-F/kEeybGZlQ5MrsjJ1+cs4Ld8zeSFnOijBtOQ1NULAM=",
         "ref": "refs/heads/master",
-        "rev": "874b5997d52df9b9b7aeaaf907b6e92afcc36410",
-        "revCount": 14,
+        "rev": "144513d16dc9e4b9cab0b027c95c431f098b302a",
+        "revCount": 16,
         "type": "git",
         "url": "https://fudo.dev/public/nexus-crypto.git"
       },
@@ -736,17 +740,17 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1713344939,
-        "narHash": "sha256-jpHkAt0sG2/J7ueKnG7VvLLkBYUMQbXQ2L8OBpVG53s=",
+        "lastModified": 1673785507,
+        "narHash": "sha256-EPUT8yVdvJhhjhbgnFWXXd4IUPKSOmww2+z4AmOdyPI=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "e402c3eb6d88384ca6c52ef1c53e61bdc9b84ddd",
+        "rev": "d06d765eeac716d8f1ca80f0935fd6fc951816ad",
         "type": "github"
       },
       "original": {
-        "id": "nixpkgs",
-        "ref": "nixos-23.11",
-        "type": "indirect"
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "type": "github"
       }
     },
     "nixpkgs_3": {
@@ -766,41 +770,11 @@
     },
     "nixpkgs_4": {
       "locked": {
-        "lastModified": 1673785507,
-        "narHash": "sha256-EPUT8yVdvJhhjhbgnFWXXd4IUPKSOmww2+z4AmOdyPI=",
+        "lastModified": 1715395895,
+        "narHash": "sha256-DreMqi6+qa21ffLQqhMQL2XRUkAGt3N7iVB5FhJKie4=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "d06d765eeac716d8f1ca80f0935fd6fc951816ad",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
-    "nixpkgs_5": {
-      "locked": {
-        "lastModified": 1713344939,
-        "narHash": "sha256-jpHkAt0sG2/J7ueKnG7VvLLkBYUMQbXQ2L8OBpVG53s=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "e402c3eb6d88384ca6c52ef1c53e61bdc9b84ddd",
-        "type": "github"
-      },
-      "original": {
-        "id": "nixpkgs",
-        "ref": "nixos-23.11",
-        "type": "indirect"
-      }
-    },
-    "nixpkgs_6": {
-      "locked": {
-        "lastModified": 1713344939,
-        "narHash": "sha256-jpHkAt0sG2/J7ueKnG7VvLLkBYUMQbXQ2L8OBpVG53s=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "e402c3eb6d88384ca6c52ef1c53e61bdc9b84ddd",
+        "rev": "71bae31b7dbc335528ca7e96f479ec93462323ff",
         "type": "github"
       },
       "original": {
@@ -814,7 +788,7 @@
         "fudo-clojure": "fudo-clojure",
         "helpers": "helpers_2",
         "nexus-crypto": "nexus-crypto",
-        "nixpkgs": "nixpkgs_6",
+        "nixpkgs": "nixpkgs_4",
         "utils": "utils_9"
       }
     },
