@@ -3,10 +3,7 @@
 
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-23.11";
-    utils = {
-      url = "github:numtide/flake-utils";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    utils.url = "github:numtide/flake-utils";
     fudo-clojure = {
       url = "git+https://fudo.dev/public/fudo-clojure.git";
       inputs.nixpkgs.follows = "nixpkgs";
