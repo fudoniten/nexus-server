@@ -5,15 +5,15 @@
     nixpkgs.url = "nixpkgs/nixos-23.11";
     utils.url = "github:numtide/flake-utils";
     fudo-clojure = {
-      url = "git+https://fudo.dev/public/fudo-clojure.git";
+      url = "github:fudoniten/fudo-clojure";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nexus-crypto = {
-      url = "git+https://fudo.dev/public/nexus-crypto.git";
+      url = "github:fudoniten/nexus-crypto";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     helpers = {
-      url = "git+https://fudo.dev/public/nix-helpers.git";
+      url = "github:fudo-nix-helpers";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
