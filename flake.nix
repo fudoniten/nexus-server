@@ -2,7 +2,7 @@
   description = "Nexus Server";
 
   inputs = {
-    nixpkgs.url = "nixpkgs/nixos-23.11";
+    nixpkgs.url = "nixpkgs/nixos-24.05";
     utils.url = "github:numtide/flake-utils";
     fudo-clojure = {
       url = "github:fudoniten/fudo-clojure";
