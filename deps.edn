@@ -14,13 +14,13 @@
         org.postgresql/postgresql { :mvn/version "42.6.0" }
 
         org.fudo/nexus.crypto {
-                               :git/url "https://fudo.dev/public/nexus-crypto.git"
-                               :git/sha "e5e7bb018f68b40a4a65bd2cc4e9e1f435e267ab"
+                               :git/url "https://github.com/fudoniten/nexus-crypto.git"
+                               :git/sha "a63d0b3d0c637ace92ef8f976f602dd1efbbad3d"
                                }
 
         org.fudo/fudo-clojure {
-                               :git/url "https://fudo.dev/public/fudo-clojure.git"
-                               :git/sha "25467fceddcb9c81180ddb83f3e21f9ef21cd07f"
+                               :git/url "https://github.com/fudoniten/fudo-clojure.git"
+                               :git/sha "aa7da4169fbff2f11bac674b0c93ef0b0ef77b0f"
                                }}
 
  :aliases

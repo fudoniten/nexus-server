@@ -4,6 +4,7 @@
             [clojure.string :as str]
             [nexus.sql-datastore :as sql-store]
             [nexus.authenticator :as auth]
+            [nexus.host-alias-map :as host-mapper]
             [ring.adapter.jetty :refer [run-jetty]]
             [clojure.core.async :refer [chan >!! <!!]]
             [clojure.set :as set])
@@ -14,6 +15,9 @@
 (def cli-opts
   [["-k" "--host-keys HOST_KEYS"
     "File containing host/key pairs, in json format."]
+
+   ["-M" "--host-alias-map HOST_ALIAS_MAP"
+    "File containing host to domain/alias mapping, in json format."]
 
    ["-D" "--database DATABASE"
     "Database name of the PowerDNS database."]
@@ -80,16 +84,18 @@
                         :verbose}
         {:keys [options _ errors summary]}
         (parse-opts args required-keys cli-opts)]
-    (when (:help options) (msg-quit 0 (usage summary)))
+    (when (:help options)    (msg-quit 0 (usage summary)))
     (when (:version options) (msg-quit 0 (format "nexus-server v%s" VERSION)))
-    (when (seq errors)    (msg-quit 1 (usage summary errors)))
+    (when (seq errors)       (msg-quit 1 (usage summary errors)))
     (when (:verbose options)
       (println "Options:")
       (println (str/join \newline (map (fn [[k v]] (str "  " (name k) ": " v)) options))))
     (let [authenticator  (auth/read-key-collection (:host-keys options))
           store          (sql-store/connect options)
+          host-alias-map (:host-alias-map options)
           app            (server/create-app :authenticator authenticator
                                             :data-store    store
+                                            :host-mapper   (host-mapper/make-mapper host-alias-map)
                                             :verbose       (:verbose options))
           catch-shutdown (chan)
           server         (serve! app {:port (:listen-port options)

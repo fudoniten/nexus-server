@@ -6,7 +6,7 @@
 
 
 (defprotocol ISignatureValidator
-  (sign [_ signer msg])
+  (sign               [_ signer msg])
   (validate-signature [_ signer msg sig]))
 
 (defrecord Authenticator [key-map]
