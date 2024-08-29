@@ -181,9 +181,12 @@
                       (-> req :headers :x-forwarded-server)
                       ": "
                       (-> req :uri))))
-      (let [result (handler req)]
-        (when verbose (pprint result))
-        result))))
+      (try+
+        (let [result (handler req)]
+          (when verbose (pprint result))
+          result)
+        (catch Exception e
+          (println (format "request failed: %s" (.toString e))))))))
 
 (defn create-app [& {:keys [authenticator data-store max-delay verbose host-mapper]
                      :or   {max-delay 60
