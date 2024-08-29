@@ -23,7 +23,7 @@
                                  (format "%s.%s" (name host) (name domain))
                                  (keyword host))))
 
-(defn- make-mapper [host-alias-map-file]
+(defn make-mapper [host-alias-map-file]
   (if (string? host-alias-map-file)
     (->> host-alias-map-file
          (read-json-file)
