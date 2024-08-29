@@ -134,21 +134,26 @@
   (let [req-str (build-request-string :body body-str
                                       :method request-method
                                       :uri uri
-                                      :timestamp access-timestamp)]
-    (auth/validate-signature authenticator (host-mapper host domain) req-str access-signature)))
+                                      :timestamp access-timestamp)
+        signing-host (host-mapper host domain)]
+    (auth/validate-signature authenticator signing-host req-str access-signature)))
 
-(defn- make-host-signature-authenticator [authenticator host-mapper]
+(defn- make-host-signature-authenticator [verbose authenticator host-mapper]
   (fn [handler]
     (fn [{{:keys [access-signature]} :headers
          :as req}]
       (if (nil? access-signature)
-        { :status 406 :body "rejected: missing request signature" }
+        (do (when verbose (println "missing access signature, rejecting request"))
+            { :status 406 :body "rejected: missing request signature" })
         (try+
          (if (authenticate-request authenticator host-mapper req)
-           (handler req)
-           { :status 401 :body "rejected: request signature invalid" })
+           (do (when verbose (println "accepted signature, proceeding"))
+               (handler req))
+           (do (when verbose (println "bad signature, rejecting request"))
+               { :status 401 :body "rejected: request signature invalid" }))
          (catch [:type ::auth/missing-key] _
-             { :status 404 :body (str "rejected: missing key for host") }))))))
+           (println "matching key not found, rejecting request")
+           { :status 404 :body (str "rejected: missing key for host") }))))))
 
 (defn- make-timing-validator [max-diff]
   (fn [handler]
@@ -192,7 +197,7 @@
                                       (log-requests verbose)]}
                  ["/health" {:get {:handler (fn [_] {:status 200 :body "ok"})}}]
                  ["/:domain"
-                  ["/:host" {:middleware [(make-host-signature-authenticator authenticator host-mapper)]}
+                  ["/:host" {:middleware [(make-host-signature-authenticator verbose authenticator host-mapper)]}
                    ["/ipv4" {:put {:handler (set-host-ipv4 data-store)}
                              :get {:handler (get-host-ipv4 data-store)}}]
                    ["/ipv6" {:put {:handler (set-host-ipv6 data-store)}

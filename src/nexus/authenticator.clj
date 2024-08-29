@@ -9,7 +9,7 @@
   (sign               [_ signer msg])
   (validate-signature [_ signer msg sig]))
 
-(defrecord Authenticator [key-map]
+(defrecord Authenticator [key-map verbose]
 
   ISignatureValidator
 
@@ -23,7 +23,10 @@
   (validate-signature [_ signer msg sig]
     (let [key (get key-map signer)]
       (if key
-        (crypto/validate-signature key msg sig)
+        (let [result (crypto/validate-signature key msg sig)]
+          (when verbose
+            (println (format "signature for host %s valid: %s" signer result)))
+          result)
         (throw+ {:type   ::missing-key
                  :signer signer})))))
 
@@ -35,10 +38,10 @@
   (into {} (for [[signer key] key-col]
              [signer (crypto/decode-key key)])))
 
-(defn make-authenticator [client-map]
-  (Authenticator. (decode-keys client-map)))
+(defn make-authenticator [client-map verbose]
+  (Authenticator. (decode-keys client-map) verbose))
 
-(defn read-key-collection [filename]
+(defn initialize-key-collection [filename verbose]
   (-> filename
       (read-key-collection-file)
-      (make-authenticator)))
+      (make-authenticator verbose)))

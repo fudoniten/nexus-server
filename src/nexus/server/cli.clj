@@ -90,7 +90,7 @@
     (when (:verbose options)
       (println "Options:")
       (println (str/join \newline (map (fn [[k v]] (str "  " (name k) ": " v)) options))))
-    (let [authenticator  (auth/read-key-collection (:host-keys options))
+    (let [authenticator  (auth/initialize-key-collection (:host-keys options) (:verbose options))
           store          (sql-store/connect options)
           host-alias-map (:host-alias-map options)
           app            (server/create-app :authenticator authenticator
