@@ -5,6 +5,7 @@
             [clojure.pprint :refer [pprint]]
             [nexus.authenticator :as auth]
             [nexus.datastore :as store]
+            [nexus.host-alias-map :as host-map]
             [slingshot.slingshot :refer [try+]]
             [fudo-clojure.ip :as ip]
             [fudo-clojure.common :refer [current-epoch-timestamp parse-epoch-timestamp]]))
@@ -135,7 +136,7 @@
                                       :method request-method
                                       :uri uri
                                       :timestamp access-timestamp)
-        signing-host (host-mapper host domain)]
+        signing-host (host-map/get-host host-mapper host domain)]
     (auth/validate-signature authenticator signing-host req-str access-signature)))
 
 (defn- make-host-signature-authenticator [verbose authenticator host-mapper]
