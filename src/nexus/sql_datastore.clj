@@ -208,14 +208,23 @@
   datastore/IDataStore
 
   (set-host-ipv4 [self domain host ip]
+    (when verbose
+      (println (format "setting ipv4 for %s.%s: %s"
+                       host domain ip)))
     (set-host-ipv4-impl self
                         {:domain domain :host host}
                         ip))
   (set-host-ipv6 [self domain host ip]
+    (when verbose
+      (println (format "setting ipv6 for %s.%s: %s"
+                       host domain ip)))
     (set-host-ipv6-impl self
                         {:domain domain :host host}
                         ip))
   (set-host-sshfps [self domain host sshfps]
+    (when verbose
+      (println (format "setting sshfps for %s.%s: %s"
+                       host domain sshfps)))
     (set-host-sshpfs-impl self
                           {:domain domain :host host}
                           sshfps))
