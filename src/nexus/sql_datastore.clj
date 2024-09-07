@@ -1,7 +1,7 @@
 (ns nexus.sql-datastore
   (:refer-clojure :exclude [update set delete])
   (:require [honey.sql :as sql]
-            [honey.sql.helpers :refer [select from join where insert-into update values set delete-from columns]]
+            [honey.sql.helpers :refer [select from join where insert-into update values set delete-from returning]]
             [next.jdbc :as jdbc]
             [nexus.datastore :as datastore]
             [clojure.string :as str]
@@ -203,6 +203,82 @@
            (fetch! store)
            (map :records/content)))
 
+(defn- create-challenge-record-sql [{:keys [host domain domain-id secret]}]
+  (-> (insert-into :records)
+      (values {:name      (format "%s.%s" host domain)
+               :type      "TXT"
+               :content   secret
+               :domain_id domain-id})
+      (returning :id)))
+
+(defn- create-challenge-log-record-sql [{:keys [host domain-id challenge-id record-id]}]
+  (-> (insert-into :challenges)
+      (values {:domain_id    domain-id
+               :challenge_id challenge-id
+               :hostname     host
+               :record_id    record-id})))
+
+;; Need to implement 'exec!' manually, since one query depends on the prev
+(defn- create-challenge-record-impl [store params]
+  (let [log! (fn [sql]
+               (when (:verbose store)
+                 (println (str "executing: " sql)))
+               sql)
+        params-with-domid (assoc-domain-id store params)]
+    (try
+      (jdbc/with-transaction [tx (jdbc/get-connection (:datasource store))]
+        (let [create-challenge-record (log! (sql/format (create-challenge-record-sql params-with-domid)))
+              record-id (jdbc/execute! tx create-challenge-record)]
+          (jdbc/execute! tx
+                         (log! (sql/format (create-challenge-log-record-sql (assoc params-with-domid
+                                                                                   :record-id record-id)))))))
+      (catch Exception e
+        (when (:verbose store)
+          (println (capture-stack-trace e)))
+        (throw e)))))
+
+(defn- get-challenge-record-ids-sql [{:keys [domain-id]}]
+  (-> (select :challenge_id)
+      (from :challenges)
+      (where [:= :domain_id domain-id]
+             [:= :active true])))
+
+(defn- get-challenge-records-impl [store params]
+  (let [params-with-domid (assoc-domain-id store params)]
+    (some->> (get-challenge-record-ids-sql params-with-domid)
+             (fetch! store)
+             (map :challenges/challenge_id))))
+
+(defn- get-challenge-record-id-sql [{:keys [domain-id challenge-id]}]
+  (-> (select :record_id)
+      (from :challenges)
+      (where [:= :domain_id domain-id]
+             [:= :challenge_id challenge-id])))
+
+(defn- get-challenge-record-id [store params]
+  (-> (get-challenge-record-id-sql params)
+      (fetch! store)
+      (first)
+      :challenges/record_id))
+
+(defn- delete-challenge-record-sql [{:keys [record-id]}]
+  (-> (delete-from :records)
+      (where [:= :record_id record-id])))
+
+(defn- delete-challenge-record-log-sql [{:keys [domain-id challenge-id]}]
+  (-> (update :challenges)
+      (set {:active false})
+      (where [:= :domain_id    domain-id]
+             [:= :challenge_id challenge-id])))
+
+(defn- delete-challenge-record-impl [store params]
+  (let [params-with-domid (assoc-domain-id store params)
+        record-id (get-challenge-record-id store params-with-domid)]
+    (exec! store
+           (delete-challenge-record-sql (assoc params-with-domid :record-id record-id))
+           (delete-challenge-record-log-sql params-with-domid))
+    true))
+
 (defrecord SqlDataStore [verbose datasource]
 
   datastore/IDataStore
@@ -234,7 +310,23 @@
   (get-host-ipv6 [self domain host]
     (get-host-ipv6-impl self {:domain domain :host host}))
   (get-host-sshfps [self domain host]
-    (get-host-sshfps-impl self {:domain domain :host host})))
+    (get-host-sshfps-impl self {:domain domain :host host}))
+
+  (get-challenge-records [self domain]
+    (when verbose
+      (println (format "fetching challenge records for domain %s" domain)))
+    (get-challenge-records-impl self {:domain domain}))
+  (create-challenge-record [self domain host challenge-id secret]
+    (when verbose
+      (println (format "creating challenge record %s for domain %s" challenge-id domain)))
+    (create-challenge-record-impl self {:domain       domain
+                                        :host         host
+                                        :secret       secret
+                                        :challenge-id challenge-id}))
+  (delete-challenge-record [self domain challenge-id]
+    (when verbose
+      (println (format "removing challenge record %s for domain %s" challenge-id domain)))
+    (delete-challenge-record-impl self {:domain domain :challenge-id challenge-id})))
 
 (defn connect [{:keys [database-user database-password-file database-host database-port database verbose]
                 :or {database-port 5432

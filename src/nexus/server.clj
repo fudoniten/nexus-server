@@ -102,6 +102,39 @@
         :body {:error (format "an unknown error has occurred: %s"
                               (.toString e))}}))))
 
+(defn- get-challenge-records [store]
+  (fn [{{:keys [domain]} :path-params}]
+    (try+
+     (let [challenge-records (store/get-challenge-records store domain)]
+       (if challenge-records
+         {:status 200 :body challenge-records}
+         {:status 404 :body (format "Challenge records not found for domain %s" domain)}))
+     (catch Exception e
+       {:status 500
+        :body {:error (format "an unknown error has occurred: %s"
+                              (.toString e))}}))))
+
+(defn- create-challenge-record [store]
+  (fn [{{:keys [host secret]}         :payload
+       {:keys [domain challenge-id]} :path-params}]
+    (try+
+     (do (store/create-challenge-record store domain host challenge-id secret)
+         {:status 200 :body (str challenge-id)})
+     (catch Exception e
+       {:status 500
+        :body {:error (format "an unknown error has occured: %s"
+                              (.toString e))}}))))
+
+(defn- delete-challenge-record [store]
+  (fn [{{:keys [domain challenge-id]} :path-params}]
+    (try+
+     (do (store/delete-challenge-record store domain challenge-id)
+         {:status 200 :body (str challenge-id)})
+     (catch Exception e
+       {:status 500
+        :body {:error (format "an unknown error has occured: %s"
+                              (.toString e))}}))))
+
 (defn- decode-body [handler]
   (fn [{:keys [body] :as req}]
     (if body
@@ -128,30 +161,48 @@
        body))
 
 (defn- authenticate-request [authenticator
-                             host-mapper
+                             signer
                              {:keys [body-str request-method uri]
-                              {:keys [host domain]} :path-params
                               {:keys [access-signature access-timestamp]} :headers}]
   (let [req-str (build-request-string :body body-str
                                       :method request-method
                                       :uri uri
-                                      :timestamp access-timestamp)
-        signing-host (host-map/get-host host-mapper host domain)]
-    (auth/validate-signature authenticator signing-host req-str access-signature)))
+                                      :timestamp access-timestamp)]
+    (auth/validate-signature authenticator signer req-str access-signature)))
 
-(defn- make-host-signature-authenticator [verbose authenticator host-mapper]
+(defn- make-challenge-signature-authenticator [verbose authenticator]
   (fn [handler]
-    (fn [{{:keys [access-signature]} :headers
+    (fn [{{:keys [requester]} :payload
+         {:keys [access-signature]} :headers
          :as req}]
       (if (nil? access-signature)
         (do (when verbose (println "missing access signature, rejecting request"))
             { :status 406 :body "rejected: missing request signature" })
         (try+
-         (if (authenticate-request authenticator host-mapper req)
+         (if (authenticate-request authenticator requester req)
            (do (when verbose (println "accepted signature, proceeding"))
                (handler req))
            (do (when verbose (println "bad signature, rejecting request"))
                { :status 401 :body "rejected: request signature invalid" }))
+         (catch [:type ::auth/missing-key] _
+           (println "matching key not found, rejecting request")
+           { :status 404 :body (str "rejected: missing key for host") }))))))
+
+(defn- make-host-signature-authenticator [verbose authenticator host-mapper]
+  (fn [handler]
+    (fn [{{:keys [access-signature]} :headers
+         {:keys [host domain]} :path-params
+         :as req}]
+      (if (nil? access-signature)
+        (do (when verbose (println "missing access signature, rejecting request"))
+            { :status 406 :body "rejected: missing request signature" })
+        (try+
+         (let [signer (host-map/get-host host-mapper host domain)]
+           (if (authenticate-request authenticator signer req)
+             (do (when verbose (println "accepted signature, proceeding"))
+                 (handler req))
+             (do (when verbose (println "bad signature, rejecting request"))
+                 { :status 401 :body "rejected: request signature invalid" })))
          (catch [:type ::auth/missing-key] _
            (println "matching key not found, rejecting request")
            { :status 404 :body (str "rejected: missing key for host") }))))))
@@ -189,23 +240,47 @@
         (catch Exception e
           (println (format "request failed: %s" (.toString e))))))))
 
-(defn create-app [& {:keys [authenticator data-store max-delay verbose host-mapper]
+(defn create-app [& {:keys [host-authenticator
+                            challenge-authenticator
+                            data-store
+                            max-delay
+                            verbose
+                            host-mapper]
                      :or   {max-delay 60
                             verbose   false}}]
   (when verbose (println "initializing nexus server app"))
   (ring/ring-handler
-   (ring/router ["/api" {:middleware [keywordize-headers
-                                      decode-body
-                                      encode-body
-                                      (make-timing-validator max-delay)
-                                      (log-requests verbose)]}
-                 ["/health" {:get {:handler (fn [_] {:status 200 :body "ok"})}}]
-                 ["/:domain"
-                  ["/:host" {:middleware [(make-host-signature-authenticator verbose authenticator host-mapper)]}
-                   ["/ipv4" {:put {:handler (set-host-ipv4 data-store)}
-                             :get {:handler (get-host-ipv4 data-store)}}]
-                   ["/ipv6" {:put {:handler (set-host-ipv6 data-store)}
-                             :get {:handler (get-host-ipv6 data-store)}}]
-                   ["/sshfps" {:put {:handler (set-host-sshfps data-store)}
-                               :get {:handler (get-host-sshfps data-store)}}]]]])
+   (ring/router [["/api" {:middleware [keywordize-headers
+                                       decode-body
+                                       encode-body
+                                       (make-timing-validator max-delay)
+                                       (log-requests verbose)]}
+                  ["/v2" {:middleware [keywordize-headers
+                                       decode-body
+                                       encode-body
+                                       (make-timing-validator max-delay)
+                                       (log-requests verbose)]}
+                   ["/health" {:get {:handler (fn [_] {:status 200 :body "ok"})}}]
+                   ["/:domain"
+                    ["/challenge" {:middleware [(make-challenge-signature-authenticator verbose challenge-authenticator)]}
+                     ["/list" {:get    {:handler (get-challenge-records data-store)}}]
+                     ["/:challenge-id"  {:put    {:handler (create-challenge-record data-store)}
+                                         :delete {:handler (delete-challenge-record data-store)}}]]
+                    ["/host"
+                     ["/:host" {:middleware [(make-host-signature-authenticator verbose host-authenticator host-mapper)]}
+                      ["/ipv4" {:put {:handler (set-host-ipv4 data-store)}
+                                :get {:handler (get-host-ipv4 data-store)}}]
+                      ["/ipv6" {:put {:handler (set-host-ipv6 data-store)}
+                                :get {:handler (get-host-ipv6 data-store)}}]
+                      ["/sshfps" {:put {:handler (set-host-sshfps data-store)}
+                                  :get {:handler (get-host-sshfps data-store)}}]]]]]
+                  ["/health" {:get {:handler (fn [_] {:status 200 :body "ok"})}}]
+                  ["/:domain"
+                   ["/:host" {:middleware [(make-host-signature-authenticator verbose host-authenticator host-mapper)]}
+                    ["/ipv4" {:put {:handler (set-host-ipv4 data-store)}
+                              :get {:handler (get-host-ipv4 data-store)}}]
+                    ["/ipv6" {:put {:handler (set-host-ipv6 data-store)}
+                              :get {:handler (get-host-ipv6 data-store)}}]
+                    ["/sshfps" {:put {:handler (set-host-sshfps data-store)}
+                                :get {:handler (get-host-sshfps data-store)}}]]]]])
    (ring/create-default-handler)))

@@ -16,6 +16,9 @@
   [["-k" "--host-keys HOST_KEYS"
     "File containing host/key pairs, in json format."]
 
+   ["-c" "--challenge-keys CHALLENGE_KEYS"
+    "File containing challenge keys, in json format."]
+
    ["-M" "--host-alias-map HOST_ALIAS_MAP"
     "File containing host to domain/alias mapping, in json format."]
 
@@ -74,6 +77,7 @@
 
 (defn -main [& args]
   (let [required-keys #{:host-keys
+                        :challenge-keys
                         :database
                         :database-user
                         :database-password-file
@@ -90,10 +94,14 @@
     (when (:verbose options)
       (println "Options:")
       (println (str/join \newline (map (fn [[k v]] (str "  " (name k) ": " v)) options))))
-    (let [authenticator  (auth/initialize-key-collection (:host-keys options) (:verbose options))
+    (let [host-authenticator      (auth/initialize-key-collection (:host-keys options)
+                                                                  (:verbose options))
+          challenge-authenticator (auth/initialize-key-collection (:challenge-keys options)
+                                                                  (:verbose options))
           store          (sql-store/connect options)
           host-alias-map (:host-alias-map options)
-          app            (server/create-app :authenticator authenticator
+          app            (server/create-app :host-authenticator      host-authenticator
+                                            :challenge-authenticator challenge-authenticator
                                             :data-store    store
                                             :host-mapper   (host-mapper/make-mapper host-alias-map)
                                             :verbose       (:verbose options))

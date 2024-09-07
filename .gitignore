@@ -2,6 +2,7 @@
 .idea
 *.log
 tmp/
+.lsp/
 
 .cpcache/
 .nrepl-port
