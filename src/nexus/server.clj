@@ -250,37 +250,25 @@
                             verbose   false}}]
   (when verbose (println "initializing nexus server app"))
   (ring/ring-handler
-   (ring/router [["/api" {:middleware [keywordize-headers
-                                       decode-body
-                                       encode-body
-                                       (make-timing-validator max-delay)
-                                       (log-requests verbose)]}
+   (ring/router [["/api"
                   ["/v2" {:middleware [keywordize-headers
                                        decode-body
                                        encode-body
                                        (make-timing-validator max-delay)
                                        (log-requests verbose)]}
-                   ["/health" {:get {:handler (fn [_] {:status 200 :body "ok"})}}]
-                   ["/:domain"
+                   ["/health"  {:get {:handler (fn [_] {:status 200 :body "ok"})}}]
+                   ["/domain/:domain"
+                    ["/challenges" {:middleware [(make-challenge-signature-authenticator verbose challenge-authenticator)]}
+                     ["/list" {:get {:handler (get-challenge-records data-store)}}]]
                     ["/challenge" {:middleware [(make-challenge-signature-authenticator verbose challenge-authenticator)]}
-                     ["/list" {:get    {:handler (get-challenge-records data-store)}}]
-                     ["/:challenge-id"  {:put    {:handler (create-challenge-record data-store)}
-                                         :delete {:handler (delete-challenge-record data-store)}}]]
-                    ["/host"
-                     ["/:host" {:middleware [(make-host-signature-authenticator verbose host-authenticator host-mapper)]}
-                      ["/ipv4" {:put {:handler (set-host-ipv4 data-store)}
-                                :get {:handler (get-host-ipv4 data-store)}}]
-                      ["/ipv6" {:put {:handler (set-host-ipv6 data-store)}
-                                :get {:handler (get-host-ipv6 data-store)}}]
+                     ["/:challenge-id" {:put    {:handler (create-challenge-record data-store)}
+                                        :delete {:handler (delete-challenge-record data-store)}}]]
+                    ["/host" {:middleware [(make-host-signature-authenticator verbose host-authenticator host-mapper)]}
+                     ["/:host"
+                      ["/ipv4"   {:put {:handler (set-host-ipv4 data-store)}
+                                  :get {:handler (get-host-ipv4 data-store)}}]
+                      ["/ipv6"   {:put {:handler (set-host-ipv6 data-store)}
+                                  :get {:handler (get-host-ipv6 data-store)}}]
                       ["/sshfps" {:put {:handler (set-host-sshfps data-store)}
-                                  :get {:handler (get-host-sshfps data-store)}}]]]]]
-                  ["/health" {:get {:handler (fn [_] {:status 200 :body "ok"})}}]
-                  ["/:domain"
-                   ["/:host" {:middleware [(make-host-signature-authenticator verbose host-authenticator host-mapper)]}
-                    ["/ipv4" {:put {:handler (set-host-ipv4 data-store)}
-                              :get {:handler (get-host-ipv4 data-store)}}]
-                    ["/ipv6" {:put {:handler (set-host-ipv6 data-store)}
-                              :get {:handler (get-host-ipv6 data-store)}}]
-                    ["/sshfps" {:put {:handler (set-host-sshfps data-store)}
-                                :get {:handler (get-host-sshfps data-store)}}]]]]])
+                                  :get {:handler (get-host-sshfps data-store)}}]]]]]]])
    (ring/create-default-handler)))
