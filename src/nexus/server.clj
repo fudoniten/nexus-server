@@ -186,7 +186,7 @@
                { :status 401 :body "rejected: request signature invalid" }))
          (catch [:type ::auth/missing-key] _
            (println "matching key not found, rejecting request")
-           { :status 404 :body (str "rejected: missing key for host") }))))))
+           { :status 404 :body (str "rejected: missing key for requester: " requester) }))))))
 
 (defn- make-host-signature-authenticator [verbose authenticator host-mapper]
   (fn [handler]
