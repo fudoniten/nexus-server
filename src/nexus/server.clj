@@ -140,7 +140,7 @@
     (if body
       (let [body-str (slurp body)]
         (handler (-> req
-                     (assoc :payload (json/read-str body-str :key-fn keyword))
+                     (assoc :payload (json/read-str body-str {:key-fn keyword}))
                      (assoc :body-str body-str))))
       (handler (-> req (assoc :body-str ""))))))
 
@@ -179,7 +179,7 @@
         (do (when verbose (println "missing access signature, rejecting request"))
             { :status 406 :body "rejected: missing request signature" })
         (try+
-         (if (authenticate-request authenticator (name requester) req)
+         (if (authenticate-request authenticator (keyword requester) req)
            (do (when verbose (println "accepted signature, proceeding"))
                (handler req))
            (do (when verbose (println "bad signature, rejecting request"))

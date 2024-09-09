@@ -27,9 +27,8 @@
           (when verbose
             (println (format "signature for host %s valid: %s" signer result)))
           result)
-        (do (println (format "unable to find key for %s in keys %s" signer (keys key-map)))
-            (throw+ {:type   ::missing-key
-                     :signer signer}))))))
+        (throw+ {:type   ::missing-key
+                 :signer signer})))))
 
 (defn- read-key-collection-file [filename]
   (with-open [file (io/reader filename)]
@@ -40,6 +39,8 @@
              [signer (crypto/decode-key key)])))
 
 (defn make-authenticator [client-map verbose]
+  (when verbose (println (format "authenticator loading keys for: %s"
+                                 (map name (keys client-map)))))
   (Authenticator. (decode-keys client-map) verbose))
 
 (defn initialize-key-collection [filename verbose]
