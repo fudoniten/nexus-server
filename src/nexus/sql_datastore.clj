@@ -3,6 +3,7 @@
   (:require [honey.sql :as sql]
             [honey.sql.helpers :refer [select from join where insert-into update values set delete-from returning]]
             [next.jdbc :as jdbc]
+            [slingshot.slingshot :refer [throw+]]
             [nexus.datastore :as datastore]
             [clojure.string :as str]
             [clojure.pprint :refer [pprint]])
@@ -228,11 +229,15 @@
         params-with-domid (assoc-domain-id store params)]
     (try (jdbc/with-transaction [tx (jdbc/get-connection (:datasource store))]
            (let [create-challenge-record (log! (sql/format (create-challenge-record-sql params-with-domid)))
-                 record-id (-> (jdbc/execute! tx create-challenge-record)
-                               :records/id)]
-             (jdbc/execute! tx
-                            (log! (sql/format (create-challenge-log-record-sql (assoc params-with-domid
-                                                                                      :record-id record-id)))))))
+                 record-id (some-> (jdbc/execute! tx create-challenge-record)
+                                   (first)
+                                   :records/id)]
+             (if record-id
+               (jdbc/execute! tx
+                              (log! (sql/format (create-challenge-log-record-sql (assoc params-with-domid
+                                                                                        :record-id record-id)))))
+               (throw+ {::type ::insert-challenge-failed
+                        ::msg  "failed to insert new challenge record"}))))
       (catch Exception e
         (when (:verbose store)
           (println (capture-stack-trace e)))
