@@ -233,7 +233,7 @@
                       (-> req :headers :x-forwarded-server)
                       ": "
                       (-> req :uri)))
-        (println (str "request: " req)))
+        (pprint req))
       (try+
         (let [result (handler req)]
           (when verbose (pprint result))
