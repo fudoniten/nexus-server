@@ -212,11 +212,12 @@
       (returning :id)))
 
 (defn- create-challenge-log-record-sql [{:keys [host domain-id challenge-id record-id]}]
-  (-> (insert-into :challenges)
-      (values [{:domain_id    domain-id
-                :challenge_id challenge-id
-                :hostname     host
-                :record_id    record-id}])))
+  (let [challenge-uuid (parse-uuid challenge-id)]
+    (-> (insert-into :challenges)
+        (values [{:domain_id    domain-id
+                  :challenge_id challenge-uuid
+                  :hostname     host
+                  :record_id    record-id}]))))
 
 ;; Need to implement 'exec!' manually, since one query depends on the prev
 (defn- create-challenge-record-impl [store params]
@@ -231,7 +232,7 @@
                                :records/id)]
              (jdbc/execute! tx
                             (log! (sql/format (create-challenge-log-record-sql (assoc params-with-domid
-                                                                                      :record-id (str record-id))))))))
+                                                                                      :record-id record-id)))))))
       (catch Exception e
         (when (:verbose store)
           (println (capture-stack-trace e)))
