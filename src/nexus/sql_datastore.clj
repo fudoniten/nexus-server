@@ -231,7 +231,7 @@
                                :records/id)]
              (jdbc/execute! tx
                             (log! (sql/format (create-challenge-log-record-sql (assoc params-with-domid
-                                                                                      :record-id record-id)))))))
+                                                                                      :record-id (str record-id))))))))
       (catch Exception e
         (when (:verbose store)
           (println (capture-stack-trace e)))
