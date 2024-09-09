@@ -154,6 +154,11 @@
     (handler (update req :headers
                      (fn [headers] (update-keys headers keyword))))))
 
+(defn- keywordize-payload [handler]
+  (fn [req]
+    (handler (update req :payload
+                     (fn [payload] (update-keys payload keyword))))))
+
 (defn- build-request-string [& {:keys [body method uri timestamp]}]
   (str (-> method (name) (str/upper-case))
        uri
@@ -253,6 +258,7 @@
   (ring/ring-handler
    (ring/router [["/api"
                   ["/v2" {:middleware [keywordize-headers
+                                       keywordize-payload
                                        decode-body
                                        encode-body
                                        (make-timing-validator max-delay)
