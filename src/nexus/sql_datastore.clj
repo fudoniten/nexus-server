@@ -205,18 +205,18 @@
 
 (defn- create-challenge-record-sql [{:keys [host domain domain-id secret]}]
   (-> (insert-into :records)
-      (values {:name      (format "%s.%s" host domain)
-               :type      "TXT"
-               :content   secret
-               :domain_id domain-id})
+      (values [{:name      (format "%s.%s" host domain)
+                :type      "TXT"
+                :content   secret
+                :domain_id domain-id}])
       (returning :id)))
 
 (defn- create-challenge-log-record-sql [{:keys [host domain-id challenge-id record-id]}]
   (-> (insert-into :challenges)
-      (values {:domain_id    domain-id
-               :challenge_id challenge-id
-               :hostname     host
-               :record_id    record-id})))
+      (values [{:domain_id    domain-id
+                :challenge_id challenge-id
+                :hostname     host
+                :record_id    record-id}])))
 
 ;; Need to implement 'exec!' manually, since one query depends on the prev
 (defn- create-challenge-record-impl [store params]
