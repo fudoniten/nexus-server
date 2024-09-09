@@ -27,8 +27,9 @@
           (when verbose
             (println (format "signature for host %s valid: %s" signer result)))
           result)
-        (throw+ {:type   ::missing-key
-                 :signer signer})))))
+        (do (println (format "unable to find key for %s in keys %s" signer (keys key-map)))
+            (throw+ {:type   ::missing-key
+                     :signer signer}))))))
 
 (defn- read-key-collection-file [filename]
   (with-open [file (io/reader filename)]
