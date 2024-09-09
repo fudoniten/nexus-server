@@ -225,13 +225,13 @@
                  (println (str "executing: " sql)))
                sql)
         params-with-domid (assoc-domain-id store params)]
-    (try
-      (jdbc/with-transaction [tx (jdbc/get-connection (:datasource store))]
-        (let [create-challenge-record (log! (sql/format (create-challenge-record-sql params-with-domid)))
-              record-id (jdbc/execute! tx create-challenge-record)]
-          (jdbc/execute! tx
-                         (log! (sql/format (create-challenge-log-record-sql (assoc params-with-domid
-                                                                                   :record-id record-id)))))))
+    (try (jdbc/with-transaction [tx (jdbc/get-connection (:datasource store))]
+           (let [create-challenge-record (log! (sql/format (create-challenge-record-sql params-with-domid)))
+                 record-id (-> (jdbc/execute! tx create-challenge-record)
+                               :records/id)]
+             (jdbc/execute! tx
+                            (log! (sql/format (create-challenge-log-record-sql (assoc params-with-domid
+                                                                                      :record-id record-id)))))))
       (catch Exception e
         (when (:verbose store)
           (println (capture-stack-trace e)))
