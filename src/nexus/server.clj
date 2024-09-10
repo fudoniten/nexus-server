@@ -259,16 +259,18 @@
                   ["/v2" {:middleware [keywordize-headers
                                        decode-body
                                        encode-body
-                                       (make-timing-validator max-delay)
                                        (log-requests verbose)]}
                    ["/health"  {:get {:handler (fn [_] {:status 200 :body "ok"})}}]
                    ["/domain/:domain"
-                    ["/challenges" {:middleware [(make-challenge-signature-authenticator verbose challenge-authenticator)]}
+                    ["/challenges" {:middleware [(make-challenge-signature-authenticator verbose challenge-authenticator)
+                                                 (make-timing-validator max-delay)]}
                      ["/list" {:get {:handler (get-challenge-records data-store)}}]]
-                    ["/challenge" {:middleware [(make-challenge-signature-authenticator verbose challenge-authenticator)]}
+                    ["/challenge" {:middleware [(make-challenge-signature-authenticator verbose challenge-authenticator)
+                                                (make-timing-validator max-delay)]}
                      ["/:challenge-id" {:put    {:handler (create-challenge-record data-store)}
                                         :delete {:handler (delete-challenge-record data-store)}}]]
-                    ["/host" {:middleware [(make-host-signature-authenticator verbose host-authenticator host-mapper)]}
+                    ["/host" {:middleware [(make-host-signature-authenticator verbose host-authenticator host-mapper)
+                                           (make-timing-validator max-delay)]}
                      ["/:host"
                       ["/ipv4"   {:put {:handler (set-host-ipv4 data-store)}
                                   :get {:handler (get-host-ipv4 data-store)}}]
