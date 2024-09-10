@@ -131,6 +131,8 @@
      (do (store/delete-challenge-record store domain challenge-id)
          {:status 200 :body (str challenge-id)})
      (catch Exception e
+       (when (:verbose store)
+         (println (format "an unknown error has occurred: %s" (.toString e))))
        {:status 500
         :body {:error (format "an unknown error has occured: %s"
                               (.toString e))}}))))
@@ -140,7 +142,9 @@
     (if body
       (let [body-str (slurp body)]
         (handler (-> req
-                     (assoc :payload (json/read-str body-str {:key-fn keyword}))
+                     (assoc :payload (if (= body-str "")
+                                       {}
+                                       (json/read-str body-str {:key-fn keyword})))
                      (assoc :body-str body-str))))
       (handler (-> req (assoc :body-str ""))))))
 
@@ -186,7 +190,7 @@
                { :status 401 :body "rejected: request signature invalid" }))
          (catch [:type ::auth/missing-key] _
            (println (format "matching key not found for requester %s, rejecting request" requester))
-           { :status 404 :body (format "rejected: missing key for requester: %s" requester) }))))))
+           { :status 401 :body (format "rejected: missing key for requester: %s" requester) }))))))
 
 (defn- make-host-signature-authenticator [verbose authenticator host-mapper]
   (fn [handler]
