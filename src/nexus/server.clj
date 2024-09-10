@@ -176,21 +176,21 @@
 
 (defn- make-challenge-signature-authenticator [verbose authenticator]
   (fn [handler]
-    (fn [{{:keys [requester]} :payload
+    (fn [{{:keys [service]} :parameters
          {:keys [access-signature]} :headers
          :as req}]
       (if (nil? access-signature)
         (do (when verbose (println "missing access signature, rejecting request"))
             { :status 406 :body "rejected: missing request signature" })
         (try+
-         (if (authenticate-request authenticator (keyword requester) req)
+         (if (authenticate-request authenticator (keyword service) req)
            (do (when verbose (println "accepted signature, proceeding"))
                (handler req))
            (do (when verbose (println "bad signature, rejecting request"))
                { :status 401 :body "rejected: request signature invalid" }))
          (catch [:type ::auth/missing-key] _
-           (println (format "matching key not found for requester %s, rejecting request" requester))
-           { :status 401 :body (format "rejected: missing key for requester: %s" requester) }))))))
+           (println (format "matching key not found for requester %s, rejecting request" service))
+           { :status 401 :body (format "rejected: missing key for requester: %s" service) }))))))
 
 (defn- make-host-signature-authenticator [verbose authenticator host-mapper]
   (fn [handler]
