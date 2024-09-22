@@ -249,7 +249,7 @@
       (where [:= :domain_id domain-id]
              [:= :active true])))
 
--(defn- get-challenge-records-impl [store params]
+(defn- get-challenge-records-impl [store params]
   (let [params-with-domid (assoc-domain-id store params)]
     (some->> (get-challenge-record-ids-sql params-with-domid)
              (fetch! store)
