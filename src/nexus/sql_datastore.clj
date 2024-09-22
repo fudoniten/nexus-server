@@ -267,7 +267,7 @@
       (first)
       :challenges/record_id))
 
-(defn- delete-challenge-record-sql [{:keys [record-id]}]
+(defn- delete-record-by-id-sql [{:keys [record-id]}]
   (-> (delete-from :records)
       (where [:= :record_id record-id])))
 
@@ -281,7 +281,7 @@
   (let [params-with-domid (assoc-domain-id store params)
         record-id (get-challenge-record-id store params-with-domid)]
     (exec! store
-           (delete-challenge-record-sql (assoc params-with-domid :record-id record-id))
+           (delete-record-by-id-sql (assoc params-with-domid :record-id record-id))
            (delete-challenge-record-log-sql params-with-domid))
     true))
 
