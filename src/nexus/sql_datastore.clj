@@ -269,7 +269,7 @@
 
 (defn- delete-record-by-id-sql [{:keys [record-id]}]
   (-> (delete-from :records)
-      (where [:= :record_id record-id])))
+      (where [:= :id record-id])))
 
 (defn- delete-challenge-record-log-sql [{:keys [domain-id challenge-id]}]
   (-> (update :challenges)
