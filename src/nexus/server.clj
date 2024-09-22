@@ -128,7 +128,7 @@
 (defn- delete-challenge-record [store]
   (fn [{{:keys [domain challenge-id]} :path-params}]
     (try+
-     (do (store/delete-challenge-record store domain challenge-id)
+     (do (store/delete-challenge-record store domain (parse-uuid challenge-id))
          {:status 200 :body (str challenge-id)})
      (catch Exception e
        (when (:verbose store)
