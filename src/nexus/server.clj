@@ -188,8 +188,8 @@
            (do (when verbose (println "bad signature, rejecting request"))
                { :status 401 :body "rejected: request signature invalid" }))
          (catch [:type ::auth/missing-key] _
-           (println (format "matching key not found for requester %s, rejecting request" service))
-           { :status 401 :body (format "rejected: missing key for requester: %s" service) }))))))
+           (println (format "matching key not found for service %s, rejecting request" service))
+           { :status 401 :body (format "rejected: missing key for service: %s" service) }))))))
 
 (defn- make-host-signature-authenticator [verbose authenticator host-mapper]
   (fn [handler]
