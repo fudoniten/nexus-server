@@ -249,7 +249,7 @@
       (where [:= :domain_id domain-id]
              [:= :active true])))
 
-(defn- get-challenge-records-impl [store params]
+-(defn- get-challenge-records-impl [store params]
   (let [params-with-domid (assoc-domain-id store params)]
     (some->> (get-challenge-record-ids-sql params-with-domid)
              (fetch! store)
@@ -262,10 +262,10 @@
              [:= :challenge_id challenge-id])))
 
 (defn- get-challenge-record-id [store params]
-  (-> (get-challenge-record-id-sql params)
-      (fetch! store)
-      (first)
-      :challenges/record_id))
+  (some->> (get-challenge-record-id-sql params)
+           (fetch! store)
+           (first)
+           :challenges/record_id))
 
 (defn- delete-record-by-id-sql [{:keys [record-id]}]
   (-> (delete-from :records)
@@ -280,10 +280,12 @@
 (defn- delete-challenge-record-impl [store params]
   (let [params-with-domid (assoc-domain-id store params)
         record-id (get-challenge-record-id store params-with-domid)]
-    (exec! store
-           (delete-record-by-id-sql (assoc params-with-domid :record-id record-id))
-           (delete-challenge-record-log-sql params-with-domid))
-    true))
+    (if record-id
+      (do (exec! store
+                 (delete-record-by-id-sql (assoc params-with-domid :record-id record-id))
+                 (delete-challenge-record-log-sql params-with-domid))
+          true)
+      false)))
 
 (defrecord SqlDataStore [verbose datasource]
 
