@@ -176,8 +176,7 @@
 
 (defn- make-challenge-signature-authenticator [verbose authenticator]
   (fn [handler]
-    (fn [{{:keys [access-signature service]} :headers
-         :as req}]
+    (fn [{{:keys [access-signature service]} :headers :as req}]
       (if (nil? access-signature)
         (do (when verbose (println "missing access signature, rejecting request"))
             { :status 406 :body "rejected: missing request signature" })
