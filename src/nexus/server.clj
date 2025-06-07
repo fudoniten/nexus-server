@@ -2,7 +2,8 @@
   (:require [reitit.ring :as ring]
             [clojure.data.json :as json]
             [clojure.string :as str]
-            [clojure.pprint :refer [pprint]]
+            [nexus.logging :as log]
+            [taoensso.timbre :as timbre]
             [nexus.authenticator :as auth]
             [nexus.datastore :as store]
             [nexus.host-alias-map :as host-map]
@@ -24,10 +25,11 @@
        {:status 400
         :body (format "rejected: failed to parse IP: %s" payload)})
      (catch Exception e
-       ;; FIXME: don't spill the beans
+       (log/log-error "set-host-ipv4-failed" e
+                     {:domain domain
+                      :host host})
        {:status 500
-        :body (format "an unknown error has occurred: %s"
-                      (.toString e))}))))
+        :body "Internal server error"}))))
 
 (defn- set-host-ipv6 [store]
   (fn [{:keys [payload]
@@ -225,23 +227,20 @@
             { :status 412 :body "rejected: request timestamp out of date" }
             (handler req)))))))
 
-(defn- log-requests [verbose]
+(defn- log-requests [_]
   (fn [handler]
     (fn [req]
-      (when verbose
-        (println (str "incoming "
-                      (-> req :request-method (name))
-                      " request from "
-                      (-> req :headers :x-forwarded-server)
-                      ": "
-                      (-> req :uri)))
-        (pprint req))
+      (log/log-request req)
       (try+
-        (let [result (handler req)]
-          (when verbose (pprint result))
-          result)
-        (catch Exception e
-          (println (format "request failed: %s" (.toString e))))))))
+       (let [result (handler req)]
+         (timbre/debug {:event "request-completed"
+                       :status (:status result)})
+         result)
+       (catch Exception e
+         (log/log-error "request-failed" e
+                       {:uri (:uri req)
+                        :method (-> req :request-method name)})
+         (throw e))))))
 
 (defn create-app [& {:keys [host-authenticator
                             challenge-authenticator
@@ -251,7 +250,8 @@
                             host-mapper]
                      :or   {max-delay 60
                             verbose   false}}]
-  (when verbose (println "initializing nexus server app"))
+  (log/setup-logging! {:verbose verbose})
+  (timbre/info {:event "server-starting"})
   (ring/ring-handler
    (ring/router [["/api"
                   ["/v2" {:middleware [keywordize-headers
@@ -277,3 +277,43 @@
                       ["/sshfps" {:put {:handler (set-host-sshfps data-store)}
                                   :get {:handler (get-host-sshfps data-store)}}]]]]]]])
    (ring/create-default-handler)))
+(ns nexus.logging
+  (:require [taoensso.timbre :as timbre]
+            [taoensso.timbre.appenders.core :as appenders]
+            [clojure.data.json :as json]))
+
+(defn setup-logging!
+  "Configure logging with JSON output and appropriate levels"
+  [{:keys [verbose]}]
+  (timbre/merge-config!
+   {:level (if verbose :debug :info)
+    :appenders
+    {:println (-> (appenders/println-appender)
+                 (assoc :output-fn
+                        (fn [{:keys [level msg_ timestamp_ ?err]}]
+                          (json/write-str
+                           {:timestamp (str timestamp_)
+                            :level     (str level)
+                            :message   (force msg_)
+                            :error     (when ?err 
+                                       (.getMessage ?err))}))))}
+    :timestamp-opts {:pattern "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"}}))
+
+(defn log-request
+  "Log incoming request details"
+  [{:keys [request-method uri headers]}]
+  (timbre/info
+   {:event "incoming-request"
+    :method (-> request-method name)
+    :uri uri
+    :server (get headers :x-forwarded-server)}))
+
+(defn log-error
+  "Log error with context"
+  [event error & [context]]
+  (timbre/error
+   (merge
+    {:event event
+     :error (.getMessage error)
+     :error-type (-> error class .getName)}
+    context)))
