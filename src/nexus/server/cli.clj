@@ -109,32 +109,58 @@
       (println "Options:")
       (println (str/join \newline (map (fn [[k v]] (str "  " (name k) ": " v)) options))))
     
-    ;; Initialize components
-    (let [host-authenticator      (auth/initialize-key-collection (:host-keys options)
-                                                                  (:verbose options))
-          challenge-authenticator (auth/initialize-key-collection (:challenge-keys options)
-                                                                  (:verbose options))
-          store          (sql-store/connect options)
-          host-alias-map (:host-alias-map options)
-          app            (server/create-app :host-authenticator      host-authenticator
-                                            :challenge-authenticator challenge-authenticator
-                                            :data-store    store
-                                            :host-mapper   (host-mapper/make-mapper host-alias-map)
-                                            :verbose       (:verbose options))]
+    (let [config (validate-config options)]
+      (when-let [errors (:errors config)]
+        (msg-quit 1 (usage summary errors)))
       
-      ;; Start the server
-      (let [catch-shutdown (chan)
-            server         (serve! app {:port (:listen-port options)
-                                        :host (:listen-host options)})]
-        (when (:verbose options) (println (format "starting nexus-server v%s" VERSION)))
-        
-        ;; Set up shutdown hook
-        (.addShutdownHook (Runtime/getRuntime)
-                          (Thread. (fn [] (>!! catch-shutdown true))))
-        
-        ;; Wait for shutdown signal
-        (<!! catch-shutdown)
-        
-        ;; Stop the server and exit
-        (.stop server)
-        (System/exit 0)))))
+      (let [app (initialize-app config)]
+        (start-server! app config)))))
+
+(defn validate-config
+  "Validate the configuration options"
+  [options]
+  (let [errors (cond-> []
+                 (not (fs/exists? (:host-keys options)))
+                 (conj "host-keys file does not exist")
+                 
+                 (not (fs/exists? (:challenge-keys options)))
+                 (conj "challenge-keys file does not exist")
+                 
+                 (and (:host-alias-map options)
+                      (not (fs/exists? (:host-alias-map options))))
+                 (conj "host-alias-map file does not exist"))]
+    (if (seq errors)
+      (assoc options :errors errors)
+      options)))
+
+(defn initialize-app
+  "Initialize the application components"
+  [{:keys [host-keys challenge-keys host-alias-map verbose] :as config}]
+  (let [host-authenticator      (auth/initialize-key-collection host-keys verbose)
+        challenge-authenticator (auth/initialize-key-collection challenge-keys verbose)
+        store                   (sql-store/connect config)
+        host-mapper             (host-mapper/make-mapper host-alias-map)]
+    (server/create-app :host-authenticator      host-authenticator
+                       :challenge-authenticator challenge-authenticator
+                       :data-store              store
+                       :host-mapper             host-mapper
+                       :verbose                 verbose)))
+
+(defn start-server!
+  "Start the server and wait for shutdown"
+  [app {:keys [listen-port listen-host verbose]}]
+  (let [catch-shutdown (chan)
+        server         (serve! app {:port listen-port
+                                    :host listen-host})]
+    (when verbose (println (format "starting nexus-server v%s" VERSION)))
+    
+    ;; Set up shutdown hook
+    (.addShutdownHook (Runtime/getRuntime)
+                      (Thread. (fn [] (>!! catch-shutdown true))))
+    
+    ;; Wait for shutdown signal
+    (<!! catch-shutdown)
+    
+    ;; Stop the server and exit
+    (.stop server)
+    (System/exit 0)))
