@@ -36,6 +36,10 @@
     [_ domain host challenge-id secret]
     "Create a new ACME challenge record for domain validation")
   
-  (delete-challenge-record
+  (delete-challenge-record  
     [_ domain challenge-id]
-    "Delete an ACME challenge record after validation"))
+    "Delete an ACME challenge record after validation")
+  
+  (health-check
+    [_]
+    "Perform a health check on the datastore"))

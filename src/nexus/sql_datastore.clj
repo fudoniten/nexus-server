@@ -45,6 +45,8 @@
         (throw e)))))
 
 (defn- host-has-record-sql [{:keys [domain host record-type]}]
+  {:pre [(not (str/blank? domain))
+         (not (str/blank? host))]}
   (let [fqdn (format "%s.%s" host domain)]
     (-> (select :records.id)
         (from :records)
@@ -59,10 +61,11 @@
       (where  [:= :name domain])))
 
 (defn- get-domain-id [store domain]
-  (some->> (domain-id-sql domain)
-           (fetch! store)
-           (first)
-           :domains/id))
+  (when-not (str/blank? domain)
+    (some->> (domain-id-sql domain)
+             (fetch! store)
+             (first)
+             :domains/id)))
 
 (defn- assoc-domain-id [store {:keys [domain] :as params}]
   (assoc params :domain-id (get-domain-id store domain)))

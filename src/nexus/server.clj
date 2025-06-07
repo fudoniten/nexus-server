@@ -26,9 +26,10 @@
        {:status 400
         :body (format "rejected: failed to parse IP: %s" payload)})
      (catch Exception e
-       (log/log-error "set-host-ipv4-failed" e
+       (log/log-error "set-host-ipv4-failed" e 
                      {:domain domain
-                      :host host})
+                      :host host
+                      :ip ip})  
        {:status 500
         :body "Internal server error"}))))
 
@@ -49,7 +50,7 @@
        (log/log-error "set-host-ipv6-failed" e
                      {:domain domain
                       :host host
-                      :ip payload})
+                      :ip ip})
        {:status 500
         :body "Internal server error"}))))
 
