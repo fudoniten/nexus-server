@@ -46,10 +46,12 @@
        {:status 400
         :body (format "rejected: failed to parse IP: %s" payload)})
      (catch Exception e
-       ;; FIXME: don't spill the beans
+       (log/log-error "set-host-ipv6-failed" e
+                     {:domain domain
+                      :host host
+                      :ip payload})
        {:status 500
-        :body (format "an unknown error has occurred: %s"
-                      (.toString e))}))))
+        :body "Internal server error"}))))
 
 (defn- valid-sshfp? [sshfp]
   (not (nil? (re-matches #"^[12346] [12] [0-9a-fA-F ]{20,256}$" sshfp))))
@@ -64,10 +66,11 @@
        (do (store/set-host-sshfps store domain host payload)
            {:status 200 :body payload}))
      (catch Exception e
-       ;; FIXME: don't spill the beans
+       (log/log-error "set-host-sshfps-failed" e
+                     {:domain domain
+                      :host host})
        {:status 500
-        :body {:error (format "an unknown error has occurred: %s"
-                              (.toString e))}}))))
+        :body "Internal server error"}))))
 
 (defn- get-host-ipv4 [store]
   (fn [{{:keys [host domain]} :path-params}]
@@ -77,9 +80,11 @@
          {:status 200 :body (str ip)}
          {:status 404 :body (format "IPv4 for %s.%s not found." host domain)}))
      (catch Exception e
+       (log/log-error "get-host-ipv4-failed" e
+                     {:domain domain
+                      :host host})
        {:status 500
-        :body {:error (format "an unknown error has occurred: %s"
-                              (.toString e))}}))))
+        :body "Internal server error"}))))
 
 (defn- get-host-ipv6 [store]
   (fn [{{:keys [host domain]} :path-params}]
@@ -89,9 +94,11 @@
          {:status 200 :body (str ip)}
          {:status 404 :body (format "IPv6 for %s.%s not found." host domain)}))
      (catch Exception e
+       (log/log-error "get-host-ipv6-failed" e
+                     {:domain domain
+                      :host host})
        {:status 500
-        :body {:error (format "an unknown error has occurred: %s"
-                              (.toString e))}}))))
+        :body "Internal server error"}))))
 
 (defn- get-host-sshfps [store]
   (fn [{{:keys [host domain]} :path-params}]
@@ -101,9 +108,11 @@
          {:status 200 :body sshfps}
          {:status 404 :body (format "SSHFP for %s.%s not found." host domain)}))
      (catch Exception e
+       (log/log-error "get-host-sshfps-failed" e
+                     {:domain domain
+                      :host host})
        {:status 500
-        :body {:error (format "an unknown error has occurred: %s"
-                              (.toString e))}}))))
+        :body "Internal server error"}))))
 
 (defn- get-challenge-records [store]
   (fn [{{:keys [domain]} :path-params}]
