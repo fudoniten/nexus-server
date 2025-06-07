@@ -2,8 +2,7 @@
   (:require [reitit.ring :as ring]
             [clojure.data.json :as json]
             [clojure.string :as str]
-            [nexus.logging :as log] 
-            [nexus.metrics :as metrics]
+            [nexus.logging :as log]
             [taoensso.timbre :as timbre]
             [nexus.authenticator :as auth]
             [nexus.datastore :as store]
@@ -31,7 +30,7 @@
        (log/log-error "set-host-ipv4-failed" e 
                      {:domain domain
                       :host host
-                      :ip (str ip)})
+                      :ip (str payload)})
        {:status 500
         :body "Internal server error"}))))
 
@@ -54,7 +53,7 @@
        (log/log-error "set-host-ipv6-failed" e
                      {:domain domain
                       :host host 
-                      :ip (str ip)})
+                      :ip (str payload)})
        {:status 500
         :body "Internal server error"}))))
 
@@ -323,95 +322,3 @@
                       ["/sshfps" {:put {:handler (set-host-sshfps data-store)}
                                   :get {:handler (get-host-sshfps data-store)}}]]]]]]])
    (ring/create-default-handler)))
-(ns nexus.logging
-  (:require [taoensso.timbre :as timbre]
-            [taoensso.timbre.appenders.core :as appenders]
-            [clojure.data.json :as json]))
-
-(defn setup-logging!
-  "Configure logging with JSON output and appropriate levels"
-  [{:keys [verbose]}]
-  (timbre/merge-config!
-   {:level (if verbose :debug :info)
-    :appenders
-    {:println (-> (appenders/println-appender)
-                 (assoc :output-fn
-                        (fn [{:keys [level msg_ timestamp_ ?err]}]
-                          (json/write-str
-                           {:timestamp (str timestamp_)
-                            :level     (str level)
-                            :message   (force msg_)
-                            :error     (when ?err 
-                                       (.getMessage ?err))}))))}
-    :timestamp-opts {:pattern "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"}}))
-
-(defn log-request
-  "Log incoming request details"
-  [{:keys [request-method uri headers]}]
-  (timbre/info
-   {:event "incoming-request"
-    :method (-> request-method name)
-    :uri uri
-    :server (get headers :x-forwarded-server)}))
-
-(defn log-error
-  "Log error with context"
-  [event error & [context]]
-  (timbre/error
-   (merge
-    {:event event
-     :error (.getMessage error)
-     :error-type (-> error class .getName)}
-    context)))
-# Nexus Dynamic DNS Server
-
-This is the server component for the Nexus dynamic DNS system. It accepts update reports from Nexus clients to dynamically update DNS records, including:
-
-- IPv4 (A records)
-- IPv6 (AAAA records) 
-- SSH fingerprints (SSHFP records)
-
-## Key Features
-
-- Accepts authenticated update requests from Nexus clients
-- Stores DNS records in a SQL database
-- Provides an API for retrieving current DNS records
-- Supports ACME DNS-01 challenges for automated TLS certificate provisioning
-
-## Server API
-
-The server exposes a REST API for clients to report IP addresses and SSHFP records:
-
-- `PUT /api/v2/domain/:domain/host/:host/ipv4` - Update IPv4 address 
-- `PUT /api/v2/domain/:domain/host/:host/ipv6` - Update IPv6 address
-- `PUT /api/v2/domain/:domain/host/:host/sshfps` - Update SSHFP records
-- `GET /api/v2/domain/:domain/host/:host/ipv4` - Get current IPv4 address
-- `GET /api/v2/domain/:domain/host/:host/ipv6` - Get current IPv6 address 
-- `GET /api/v2/domain/:domain/host/:host/sshfps` - Get current SSHFP records
-
-It also has an API for ACME DNS-01 challenge management:
-
-- `GET /api/v2/domain/:domain/challenges/list` - List active challenges 
-- `PUT /api/v2/domain/:domain/challenge/:challenge-id` - Create challenge record
-- `DELETE /api/v2/domain/:domain/challenge/:challenge-id` - Delete challenge record
-
-## Configuration
-
-See `config.edn` for the available configuration options. The server requires:
-
-- SQL database connection info
-- Authenticator configuration (API keys, etc)
-
-## Development
-
-Run locally with:
-
-```
-clojure -M:run
-```
-
-Run tests with:
-
-```
-clojure -M:test
-```
