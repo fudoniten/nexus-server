@@ -1,6 +1,6 @@
 (ns nexus.sql-datastore-test
   (:require [clojure.test :refer :all]
-            [nexus.sql-datastore :as sut]
+            [nexus.sql-datastore :as sql]
             [next.jdbc :as jdbc]))
 
 (def test-db {:dbtype "postgresql"
@@ -23,29 +23,29 @@
 (use-fixtures :each with-test-db)
 
 (deftest test-set-and-get-host-ipv4
-  (let [store (sut/connect test-db)]
-    (is (nil? (sut/get-host-ipv4 store "example.com" "www")))
-    (sut/set-host-ipv4 store "example.com" "www" "1.2.3.4")
-    (is (= "1.2.3.4" (sut/get-host-ipv4 store "example.com" "www")))))
+  (let [store (sql/connect test-db)]
+    (is (nil? (sql/get-host-ipv4 store "example.com" "www")))
+    (sql/set-host-ipv4 store "example.com" "www" "1.2.3.4")
+    (is (= "1.2.3.4" (sql/get-host-ipv4 store "example.com" "www")))))
 
 (deftest test-set-and-get-host-ipv6  
-  (let [store (sut/connect test-db)]
-    (is (nil? (sut/get-host-ipv6 store "example.com" "www")))
-    (sut/set-host-ipv6 store "example.com" "www" "::1")
-    (is (= "::1" (sut/get-host-ipv6 store "example.com" "www")))))
+  (let [store (sql/connect test-db)]
+    (is (nil? (sql/get-host-ipv6 store "example.com" "www")))
+    (sql/set-host-ipv6 store "example.com" "www" "::1")
+    (is (= "::1" (sql/get-host-ipv6 store "example.com" "www")))))
 
 (deftest test-set-and-get-host-sshfps
-  (let [store (sut/connect test-db)
+  (let [store (sql/connect test-db)
         sshfps ["1 1 123456" "1 2 789012"]]
-    (is (nil? (sut/get-host-sshfps store "example.com" "www")))  
-    (sut/set-host-sshfps store "example.com" "www" sshfps)
-    (is (= sshfps (sut/get-host-sshfps store "example.com" "www")))))
+    (is (nil? (sql/get-host-sshfps store "example.com" "www")))  
+    (sql/set-host-sshfps store "example.com" "www" sshfps)
+    (is (= sshfps (sql/get-host-sshfps store "example.com" "www")))))
 
 (deftest test-create-and-delete-challenge-record  
-  (let [store (sut/connect test-db)
+  (let [store (sql/connect test-db)
         challenge-id (java.util.UUID/randomUUID)]
-    (is (empty? (sut/get-challenge-records store "example.com")))
-    (sut/create-challenge-record store "example.com" "_acme-challenge" challenge-id "secret")
-    (is (= [challenge-id] (sut/get-challenge-records store "example.com")))
-    (sut/delete-challenge-record store "example.com" challenge-id)  
-    (is (empty? (sut/get-challenge-records store "example.com")))))
+    (is (empty? (sql/get-challenge-records store "example.com")))
+    (sql/create-challenge-record store "example.com" "_acme-challenge" challenge-id "secret")
+    (is (= [challenge-id] (sql/get-challenge-records store "example.com")))
+    (sql/delete-challenge-record store "example.com" challenge-id)  
+    (is (empty? (sql/get-challenge-records store "example.com")))))
