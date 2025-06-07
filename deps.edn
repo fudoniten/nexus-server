@@ -13,7 +13,7 @@
         com.github.seancorfield/honeysql { :mvn/version "2.6.1126" }
         org.postgresql/postgresql { :mvn/version "42.6.0" }
         metrics-clojure/metrics-clojure { :mvn/version "2.10.0" }
-        com.taoensso/timbre { :mvn/version "6.1.0" }
+        com.taoensso/timbre { :mvn/version "6.7.0" }
 
         org.fudo/nexus.crypto {
                                :git/url "https://github.com/fudoniten/nexus-crypto.git"
