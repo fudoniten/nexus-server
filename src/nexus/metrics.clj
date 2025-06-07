@@ -1,21 +1,22 @@
 (ns nexus.metrics
   (:require [metrics.core :as metrics]
             [metrics.timers :as timers]
-            [metrics.histograms :as histograms]))
+            [metrics.histograms :as histograms]
+            [nexus.logging :as log]
+            [taoensso.timbre :as timbre]
+            [iapetos.core :as prometheus]
+            [iapetos.collector.jvm :as jvm]
+            [iapetos.collector.ring :as ring]
+            [iapetos.export :as export]))
 
-(def registry (metrics/new-registry))
+(defn initialize-metrics []
+  (timbre/info "Initializing Nexus metrics")
+  (-> (prometheus/collector-registry)
+      (jvm/initialize)
+      (ring/initialize)))
 
-(def request-timer
-  (timers/timer registry ["http" "requests"]))
-
-(def error-counter
-  (metrics/counter registry ["errors" "total"]))
-
-(def request-size-histogram
-  (histograms/histogram registry ["http" "request" "size"]))
-
-(def response-size-histogram
-  (histograms/histogram registry ["http" "response" "size"]))
+(defn metrics-handler [registry]
+  (export/text-format registry))
 
 (defn time-request [handler]
   (fn [request]
