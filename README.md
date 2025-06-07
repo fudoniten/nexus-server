@@ -50,3 +50,42 @@ Run tests with:
 ```
 clojure -M:test
 ```
+## Command-line Options
+
+The Nexus server CLI supports the following command-line options:
+
+`-k HOST_KEYS, --host-keys HOST_KEYS`
+: File containing host/key pairs, in json format.
+
+`-c CHALLENGE_KEYS, --challenge-keys CHALLENGE_KEYS` 
+: File containing challenge keys, in json format.
+
+`-M HOST_ALIAS_MAP, --host-alias-map HOST_ALIAS_MAP`
+: File containing host to domain/alias mapping, in json format.
+
+`-D DATABASE, --database DATABASE`
+: Database name of the PowerDNS database.
+
+`-U DB_USER, --database-user DB_USER`
+: User as which to connect to the PowerDNS database.
+
+`-W DB_PASSWORD_FILE, --database-password-file DB_PASSWORD_FILE`
+: File containing password with which to connect to the PowerDNS database.
+
+`-H DB_HOSTNAME, --database-host DB_HOSTNAME`
+: Hostname of the Postgresql PowerDNS database.
+
+`-P DB_PORT, --database-port DB_PORT`
+: Port of the Postgresql server backing PowerDNS. Defaults to 5432.
+
+`-h HOST, --listen-host HOST`
+: Hostname or IP address on which to listen. 
+
+`-p PORT, --listen-port PORT`
+: Port on which to listen for incoming requests.
+
+`-v, --verbose`
+: Enable verbose output.
+
+`-V, --version`
+: Print the current version.
