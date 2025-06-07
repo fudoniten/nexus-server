@@ -42,8 +42,4 @@
   
   (delete-challenge-record  
     [_ domain challenge-id]
-    "Delete an ACME challenge record after validation")
-  
-  (health-check
-    [_]
-    "Perform a health check on the datastore"))
+    "Delete an ACME challenge record after validation"))
