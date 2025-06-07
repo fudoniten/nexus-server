@@ -12,7 +12,9 @@
             [fudo-clojure.ip :as ip]
             [fudo-clojure.common :refer [current-epoch-timestamp parse-epoch-timestamp]]))
 
-(defn- set-host-ipv4 [store]
+(defn- set-host-ipv4 
+  "Handler for setting a host's IPv4 address record"
+  [store]
   (fn [{:keys [payload]
        {:keys [host domain]} :path-params}]
     (try+
@@ -33,7 +35,9 @@
        {:status 500
         :body "Internal server error"}))))
 
-(defn- set-host-ipv6 [store]
+(defn- set-host-ipv6
+  "Handler for setting a host's IPv6 address record"
+  [store]  
   (fn [{:keys [payload]
        {:keys [host domain]} :path-params}]
     (try+
@@ -57,7 +61,9 @@
 (defn- valid-sshfp? [sshfp]
   (not (nil? (re-matches #"^[12346] [12] [0-9a-fA-F ]{20,256}$" sshfp))))
 
-(defn- set-host-sshfps [store]
+(defn- set-host-sshfps
+  "Handler for setting a host's SSHFP records"
+  [store]
   (fn [{:keys [payload]
        {:keys [host domain]} :path-params}]
     (try+
@@ -73,7 +79,9 @@
        {:status 500
         :body "Internal server error"}))))
 
-(defn- get-host-ipv4 [store]
+(defn- get-host-ipv4
+  "Handler for retrieving a host's IPv4 address record"
+  [store]
   (fn [{{:keys [host domain]} :path-params}]
     (try+
      (let [ip (store/get-host-ipv4 store domain host)]
@@ -87,7 +95,9 @@
        {:status 500
         :body "Internal server error"}))))
 
-(defn- get-host-ipv6 [store]
+(defn- get-host-ipv6
+  "Handler for retrieving a host's IPv6 address record"
+  [store]
   (fn [{{:keys [host domain]} :path-params}]
     (try+
      (let [ip (store/get-host-ipv6 store domain host)]
@@ -101,7 +111,9 @@
        {:status 500
         :body "Internal server error"}))))
 
-(defn- get-host-sshfps [store]
+(defn- get-host-sshfps
+  "Handler for retrieving a host's SSHFP records"
+  [store]
   (fn [{{:keys [host domain]} :path-params}]
     (try+
      (let [sshfps (store/get-host-sshfps store domain host)]
@@ -115,7 +127,9 @@
        {:status 500
         :body "Internal server error"}))))
 
-(defn- get-challenge-records [store]
+(defn- get-challenge-records
+  "Handler for listing ACME challenge records for a domain"
+  [store]
   (fn [{{:keys [domain]} :path-params}]
     (try+
      (let [challenge-records (store/get-challenge-records store domain)]
@@ -127,7 +141,9 @@
         :body {:error (format "an unknown error has occurred: %s"
                               (.toString e))}}))))
 
-(defn- create-challenge-record [store]
+(defn- create-challenge-record
+  "Handler for creating a new ACME challenge record"
+  [store]
   (fn [{{:keys [host secret]}         :payload
        {:keys [domain challenge-id]} :path-params}]
     (try+
@@ -138,7 +154,9 @@
         :body {:error (format "an unknown error has occured: %s"
                               (.toString e))}}))))
 
-(defn- delete-challenge-record [store]
+(defn- delete-challenge-record
+  "Handler for deleting an ACME challenge record"
+  [store]
   (fn [{{:keys [domain challenge-id]} :path-params}]
     (try+
      (do (store/delete-challenge-record store domain (parse-uuid challenge-id))
@@ -150,7 +168,9 @@
         :body {:error (format "an unknown error has occured: %s"
                               (.toString e))}}))))
 
-(defn- decode-body [handler]
+(defn- decode-body
+  "Middleware to parse the request body as JSON"
+  [handler]
   (fn [{:keys [body] :as req}]
     (if body
       (let [body-str (slurp body)]
@@ -161,12 +181,16 @@
                      (assoc :body-str body-str))))
       (handler (-> req (assoc :body-str ""))))))
 
-(defn- encode-body [handler]
+(defn- encode-body
+  "Middleware to serialize the response body as JSON"
+  [handler]
   (fn [req]
     (let [resp (handler req)]
       (assoc resp :body (json/write-str (:body resp))))))
 
-(defn- keywordize-headers [handler]
+(defn- keywordize-headers
+  "Middleware to convert header names to keywords"
+  [handler]
   (fn [req]
     (handler (update req :headers
                      (fn [headers] (update-keys headers keyword))))))
@@ -187,7 +211,9 @@
                                       :timestamp access-timestamp)]
     (auth/validate-signature authenticator signer req-str access-signature)))
 
-(defn- make-challenge-signature-authenticator [verbose authenticator]
+(defn- make-challenge-signature-authenticator
+  "Create middleware to authenticate requests to the ACME challenge API"
+  [verbose authenticator]
   (fn [handler]
     (fn [{{:keys [access-signature service]} :headers :as req}]
       (if (nil? access-signature)
@@ -203,7 +229,9 @@
            (println (format "matching key not found for service %s, rejecting request" service))
            { :status 401 :body (format "rejected: missing key for service: %s" service) }))))))
 
-(defn- make-host-signature-authenticator [verbose authenticator host-mapper]
+(defn- make-host-signature-authenticator
+  "Create middleware to authenticate requests to the host record API"
+  [verbose authenticator host-mapper]
   (fn [handler]
     (fn [{{:keys [access-signature]} :headers
          {:keys [host domain]} :path-params
@@ -222,7 +250,9 @@
            (println "matching key not found, rejecting request")
            { :status 404 :body (str "rejected: missing key for host") }))))))
 
-(defn- make-timing-validator [max-diff]
+(defn- make-timing-validator
+  "Create middleware to validate request timestamps are within a max difference"
+  [max-diff]
   (fn [handler]
     (fn [{{:keys [access-timestamp]} :headers
          :as req}]
@@ -238,7 +268,9 @@
             { :status 412 :body "rejected: request timestamp out of date" }
             (handler req)))))))
 
-(defn- log-requests [_]
+(defn- log-requests
+  "Middleware to log incoming requests"
+  [_]
   (fn [handler]
     (fn [req]
       (log/log-request req)
@@ -253,7 +285,9 @@
                         :method (-> req :request-method name)})
          (throw e))))))
 
-(defn create-app [& {:keys [host-authenticator
+(defn create-app
+  "Create the Nexus server app with the given configuration"
+  [& {:keys [host-authenticator
                             challenge-authenticator
                             data-store
                             max-delay
