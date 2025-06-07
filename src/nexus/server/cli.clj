@@ -10,9 +10,11 @@
             [clojure.set :as set])
   (:gen-class))
 
-(def VERSION "0.1.1")
+(def VERSION "0.1.1"
+  "The current version of the Nexus server.")
 
 (def cli-opts
+  "Definition of the command-line options for the Nexus server."
   [["-k" "--host-keys HOST_KEYS"
     "File containing host/key pairs, in json format."]
 
@@ -52,6 +54,8 @@
    ["-V" "--version" "Print the current version."]])
 
 (defn- usage
+  "Generate the usage message for the Nexus server CLI.
+  Takes the options summary and optional errors, and returns a formatted string."
   ([summary] (usage summary []))
   ([summary errors] (->> (concat errors
                                  ["usage: nexus [opts]"
@@ -60,11 +64,16 @@
                                   summary])
                          (str/join \newline))))
 
-(defn- msg-quit [status msg]
+(defn- msg-quit
+  "Print a message and exit with the specified status code."
+  [status msg]
   (println msg)
   (System/exit status))
 
-(defn- parse-opts [args required cli-opts]
+(defn- parse-opts
+  "Parse the command-line arguments using the specified options.
+  Checks for missing required options and returns the parsed result."
+  [args required cli-opts]
   (let [{:keys [options]
          :as result}     (cli/parse-opts args cli-opts)
         missing          (set/difference required (-> options keys set))
@@ -72,10 +81,15 @@
                               missing)]
     (update result :errors concat missing-errors)))
 
-(defn serve! [app {:keys [host port]}]
-  (run-jetty app { :host host :port port :join? false }))
+(defn serve!
+  "Start the server with the given app and host/port configuration."
+  [app {:keys [host port]}]
+  (run-jetty app {:host host :port port :join? false}))
 
-(defn -main [& args]
+(defn -main
+  "The entry point for the Nexus server application.
+  Parses command-line arguments, initializes components, and starts the server."
+  [& args]
   (let [required-keys #{:host-keys
                         :challenge-keys
                         :database
@@ -94,6 +108,8 @@
     (when (:verbose options)
       (println "Options:")
       (println (str/join \newline (map (fn [[k v]] (str "  " (name k) ": " v)) options))))
+    
+    ;; Initialize components
     (let [host-authenticator      (auth/initialize-key-collection (:host-keys options)
                                                                   (:verbose options))
           challenge-authenticator (auth/initialize-key-collection (:challenge-keys options)
@@ -104,13 +120,21 @@
                                             :challenge-authenticator challenge-authenticator
                                             :data-store    store
                                             :host-mapper   (host-mapper/make-mapper host-alias-map)
-                                            :verbose       (:verbose options))
-          catch-shutdown (chan)
-          server         (serve! app {:port (:listen-port options)
-                                      :host (:listen-host options)})]
-      (when (:verbose options) (println (format "starting nexus-server v%s" VERSION)))
-      (.addShutdownHook (Runtime/getRuntime)
-                        (Thread. (fn [] (>!! catch-shutdown true))))
-      (<!! catch-shutdown)
-      (.stop server)
-      (System/exit 0))))
+                                            :verbose       (:verbose options))]
+      
+      ;; Start the server
+      (let [catch-shutdown (chan)
+            server         (serve! app {:port (:listen-port options)
+                                        :host (:listen-host options)})]
+        (when (:verbose options) (println (format "starting nexus-server v%s" VERSION)))
+        
+        ;; Set up shutdown hook
+        (.addShutdownHook (Runtime/getRuntime)
+                          (Thread. (fn [] (>!! catch-shutdown true))))
+        
+        ;; Wait for shutdown signal
+        (<!! catch-shutdown)
+        
+        ;; Stop the server and exit
+        (.stop server)
+        (System/exit 0)))))
