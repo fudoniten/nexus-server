@@ -162,5 +162,6 @@
       (when-let [errors (:errors config)]
         (msg-quit 1 (usage summary errors)))
       
-      (let [app (initialize-app config)]
+      (let [metrics-registry (metrics/initialize-metrics)
+            app (initialize-app (assoc config :metrics-registry metrics-registry))]
         (start-server! app config)))))
