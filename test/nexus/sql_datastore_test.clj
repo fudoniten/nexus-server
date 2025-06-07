@@ -1,4 +1,3 @@
-(ns nexus.sql-datastore-test)
 (ns nexus.sql-datastore-test
   (:require [clojure.test :refer :all]
             [nexus.sql-datastore :as sut]
