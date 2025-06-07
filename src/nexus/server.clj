@@ -2,7 +2,8 @@
   (:require [reitit.ring :as ring]
             [clojure.data.json :as json]
             [clojure.string :as str]
-            [nexus.logging :as log]
+            [nexus.logging :as log] 
+            [nexus.metrics :as metrics]
             [taoensso.timbre :as timbre]
             [nexus.authenticator :as auth]
             [nexus.datastore :as store]
@@ -255,9 +256,10 @@
   (ring/ring-handler
    (ring/router [["/api"
                   ["/v2" {:middleware [keywordize-headers
-                                       decode-body
+                                       decode-body 
                                        encode-body
-                                       (log-requests verbose)]}
+                                       (log-requests verbose)
+                                       metrics/time-request]}
                    ["/health"  {:get {:handler (fn [_] {:status 200 :body "ok"})}}]
                    ["/domain/:domain"
                     ["/challenges" {:middleware [(make-challenge-signature-authenticator verbose challenge-authenticator)
