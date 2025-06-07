@@ -4,6 +4,10 @@
 (defprotocol IDataStore
   "Protocol for managing DNS records and ACME challenge data"
   
+  (health-check 
+    [_]
+    "Perform a health check on the datastore")
+  
   (set-host-ipv4
     [_ domain host ipv4]
     "Set the IPv4 A record for a host in a domain")

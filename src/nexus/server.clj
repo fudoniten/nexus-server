@@ -29,7 +29,7 @@
        (log/log-error "set-host-ipv4-failed" e 
                      {:domain domain
                       :host host
-                      :ip ip})  
+                      :ip (str ip)})
        {:status 500
         :body "Internal server error"}))))
 
@@ -49,8 +49,8 @@
      (catch Exception e
        (log/log-error "set-host-ipv6-failed" e
                      {:domain domain
-                      :host host
-                      :ip ip})
+                      :host host 
+                      :ip (str ip)})
        {:status 500
         :body "Internal server error"}))))
 
