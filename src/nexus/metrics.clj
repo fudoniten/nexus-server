@@ -19,17 +19,18 @@
 (defn metrics-handler [registry]
   (export/text-format registry))
 
-(defn time-request [registry handler]
-  (fn [request]
-    (timers/time! (timers/timer registry "request-timer")
-      (try
-        (let [response (handler request)]
-          (when-let [req-size (get-in request [:headers "content-length"])]
-            (histograms/update! (histograms/histogram registry "request-size") (Long/parseLong req-size)))
-          (when-let [res-size (get-in response [:headers "content-length"])]
-            (histograms/update! (histograms/histogram registry "response-size") (Long/parseLong res-size)))
-          response)
-        (catch Exception e
-          (log/warn! e "Error in timed request")
-          (counters/inc! registry "error-counter")
-          (throw e))))))
+(defn time-request [registry]
+  (fn [handler]
+    (fn [request]
+      (timers/time! (timers/timer registry "request-timer")
+        (try
+          (let [response (handler request)]
+            (when-let [req-size (get-in request [:headers "content-length"])]
+              (histograms/update! (histograms/histogram registry "request-size") (Long/parseLong req-size)))
+            (when-let [res-size (get-in response [:headers "content-length"])]
+              (histograms/update! (histograms/histogram registry "response-size") (Long/parseLong res-size)))
+            response)
+          (catch Exception e
+            (log/warn! e "Error in timed request")
+            (counters/inc! registry "error-counter")
+            (throw e)))))))
