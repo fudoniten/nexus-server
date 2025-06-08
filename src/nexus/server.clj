@@ -291,8 +291,7 @@
                             data-store
                             max-delay
                             verbose
-                            host-mapper
-                            metrics-registry]
+                            host-mapper]
                      :or   {max-delay 60
                             verbose   false}}]
   (log/setup-logging! {:verbose verbose})
@@ -303,9 +302,8 @@
                                        decode-body 
                                        encode-body
                                        (log-requests verbose)
-                                       (ring/wrap-metrics metrics-registry)]}
+                                       metrics/time-request]}
                    ["/health"  {:get {:handler (fn [_] {:status 200 :body "ok"})}}]
-                   ["/metrics" {:get {:handler (metrics/metrics-handler metrics-registry)}}]
                    ["/domain/:domain"
                     ["/challenges" {:middleware [(make-challenge-signature-authenticator verbose challenge-authenticator)
                                                  (make-timing-validator max-delay)]}
