@@ -12,7 +12,8 @@
   (log/info! "Initializing Nexus metrics")  
   (-> (prometheus/collector-registry)
       (jvm/initialize)
-      (ring/initialize)))
+      (ring/initialize)
+      (metrics/register-counter "error-counter")))
 
 (defn metrics-handler [registry]
   (export/text-format registry))
@@ -29,5 +30,5 @@
           response)
         (catch Exception e
           (log/warn! e "Error in timed request")
-          (metrics/inc! (metrics/counter "error-counter"))
+          (metrics/increment-counter registry "error-counter")
           (throw e))))))
