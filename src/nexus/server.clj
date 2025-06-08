@@ -240,7 +240,7 @@
         (do (when verbose (println "missing access signature, rejecting request"))
             { :status 406 :body "rejected: missing request signature" })
         (try+
-         (let [signer (host-map/get-host host-mapper host domain)]
+         (let [signer  (host-map/get-host host-mapper host domain)]
            (if (authenticate-request authenticator signer req)
              (do (when verbose (println "accepted signature, proceeding"))
                  (handler req))
@@ -264,6 +264,7 @@
                             (.getEpochSecond))
               current-timestamp (current-epoch-timestamp)
               time-diff (abs (- timestamp current-timestamp))]
+          (println (format "DELAY IS: %s" time-diff))
           (if (> time-diff max-diff)
             { :status 412 :body "rejected: request timestamp out of date" }
             (handler req)))))))
@@ -304,23 +305,23 @@
                                          decode-body 
                                          encode-body
                                          (log-requests verbose)
-                                         ((metrics/time-request metrics-registry))]}
-                   ["/health"  {:get {:handler (fn [_] {:status 200 :body "ok"})}}]
-                   ["/domain/:domain"
-                    ["/challenges" {:middleware [(make-challenge-signature-authenticator verbose challenge-authenticator)
-                                                 (make-timing-validator max-delay)]}
-                     ["/list" {:get {:handler (get-challenge-records data-store)}}]]
-                    ["/challenge" {:middleware [(make-challenge-signature-authenticator verbose challenge-authenticator)
-                                                (make-timing-validator max-delay)]}
-                     ["/:challenge-id" {:put    {:handler (create-challenge-record data-store)}
-                                        :delete {:handler (delete-challenge-record data-store)}}]]
-                    ["/host" {:middleware [(make-host-signature-authenticator verbose host-authenticator host-mapper)
-                                           (make-timing-validator max-delay)]}
-                     ["/:host"
-                      ["/ipv4"   {:put {:handler (set-host-ipv4 data-store)}
-                                  :get {:handler (get-host-ipv4 data-store)}}]
-                      ["/ipv6"   {:put {:handler (set-host-ipv6 data-store)}
-                                  :get {:handler (get-host-ipv6 data-store)}}]
-                      ["/sshfps" {:put {:handler (set-host-sshfps data-store)}
-                                  :get {:handler (get-host-sshfps data-store)}}]]]]]]])
-   (ring/create-default-handler))))
+                                         (metrics/time-request metrics-registry)]}
+                     ["/health"  {:get {:handler (fn [_] {:status 200 :body "ok"})}}]
+                     ["/domain/:domain"
+                      ["/challenges" {:middleware [(make-challenge-signature-authenticator verbose challenge-authenticator)
+                                                   (make-timing-validator max-delay)]}
+                       ["/list" {:get {:handler (get-challenge-records data-store)}}]]
+                      ["/challenge" {:middleware [(make-challenge-signature-authenticator verbose challenge-authenticator)
+                                                  (make-timing-validator max-delay)]}
+                       ["/:challenge-id" {:put    {:handler (create-challenge-record data-store)}
+                                          :delete {:handler (delete-challenge-record data-store)}}]]
+                      ["/host" {:middleware [(make-host-signature-authenticator verbose host-authenticator host-mapper)
+                                             (make-timing-validator max-delay)]}
+                       ["/:host"
+                        ["/ipv4"   {:put {:handler (set-host-ipv4 data-store)}
+                                    :get {:handler (get-host-ipv4 data-store)}}]
+                        ["/ipv6"   {:put {:handler (set-host-ipv6 data-store)}
+                                    :get {:handler (get-host-ipv6 data-store)}}]
+                        ["/sshfps" {:put {:handler (set-host-sshfps data-store)}
+                                    :get {:handler (get-host-sshfps data-store)}}]]]]]]])
+     (ring/create-default-handler))))
