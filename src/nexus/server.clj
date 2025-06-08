@@ -3,6 +3,7 @@
             [clojure.data.json :as json]
             [clojure.string :as str]
             [nexus.logging :as log]
+            [nexus.metrics :as metrics]
             [taoensso.timbre :as timbre]
             [nexus.authenticator :as auth]
             [nexus.datastore :as store]
@@ -287,13 +288,13 @@
 (defn create-app
   "Create the Nexus server app with the given configuration"
   [& {:keys [host-authenticator
-                            challenge-authenticator
-                            data-store
-                            max-delay
-                            verbose
-                            host-mapper]
-                     :or   {max-delay 60
-                            verbose   false}}]
+             challenge-authenticator
+             data-store
+             max-delay
+             verbose
+             host-mapper]
+      :or   {max-delay 60
+             verbose   false}}]
   (log/setup-logging! {:verbose verbose})
   (log/info! {:event "server-starting"})
   (ring/ring-handler
