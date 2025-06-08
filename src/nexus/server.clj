@@ -319,8 +319,8 @@
                                                   (make-timing-validator max-delay)]}
                        ["/:challenge-id" {:put    {:handler (create-challenge-record data-store)}
                                           :delete {:handler (delete-challenge-record data-store)}}]]
-                      ["/host" {:middleware [(make-host-signature-authenticator verbose host-authenticator host-mapper)
-                                             (make-timing-validator max-delay)]}
+                      ["/host" {:middleware [(make-timing-validator max-delay)
+                                             (make-host-signature-authenticator verbose host-authenticator host-mapper)]}
                        ["/:host"
                         ["/ipv4"   {:put {:handler (set-host-ipv4 data-store)}
                                     :get {:handler (get-host-ipv4 data-store)}}]
