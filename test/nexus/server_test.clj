@@ -93,7 +93,7 @@
 
     (testing "old-timestamp"
       (is (= (-> (app (-> (ring/request :get "/api/v2/domain/test.com/host/host0/ipv4")
-                          (ring/header  :access-timestamp (- (current-epoch-timestamp) 5000))
+                          (ring/header  :access-timestamp (str (- (System/currentTimeMillis) (* 120 1000))))  
                           (sign-request (:host0 host-keys))))
                  (pthru)
                  :status)
