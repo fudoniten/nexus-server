@@ -9,7 +9,7 @@
             [iapetos.export :as export]))
 
 (defn initialize-metrics []
-  (log/info! "Initializing Nexus metrics")
+  (log/info! "Initializing Nexus metrics")  
   (-> (prometheus/collector-registry)
       (jvm/initialize)
       (ring/initialize)))
