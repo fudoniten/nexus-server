@@ -1,6 +1,7 @@
 (ns nexus.metrics
   (:require [metrics.core :as metrics]
             [metrics.timers :as timers]
+            [metrics.counters :as counters]
             [metrics.histograms :as histograms]
             [nexus.logging :as log]
             [iapetos.core :as prometheus]
@@ -13,7 +14,7 @@
   (-> (prometheus/collector-registry)
       (jvm/initialize)
       (ring/initialize)
-      (metrics/register-counter "error-counter")))
+      (counters/counter "error-counter")))
 
 (defn metrics-handler [registry]
   (export/text-format registry))
@@ -30,5 +31,5 @@
           response)
         (catch Exception e
           (log/warn! e "Error in timed request")
-          (metrics/increment-counter registry "error-counter")
+          (counters/inc! registry "error-counter")
           (throw e))))))

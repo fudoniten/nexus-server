@@ -323,4 +323,4 @@
                                   :get {:handler (get-host-ipv6 data-store)}}]
                       ["/sshfps" {:put {:handler (set-host-sshfps data-store)}
                                   :get {:handler (get-host-sshfps data-store)}}]]]]]]])
-   (ring/create-default-handler)))
+   (ring/create-default-handler))))
