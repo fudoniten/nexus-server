@@ -259,7 +259,8 @@
       (if (nil? access-timestamp)
         { :status 406 :body "rejected: missing request timestamp" }
         (let [timestamp (-> access-timestamp
-                            (Integer/parseInt))
+                            (Integer/parseInt)
+                            (* 1000))
               current-timestamp (current-epoch-timestamp)
               time-diff (abs (- timestamp current-timestamp))]
           (log/info! {:event "timing-validation"
