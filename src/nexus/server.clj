@@ -279,7 +279,7 @@
                        :status (:status result)})
          result)
        (catch Exception e
-         (log/log-error "request-failed" e
+         (log/warn! "request-failed" e
                        {:uri (:uri req)
                         :method (-> req :request-method name)})
          (throw e))))))
@@ -295,7 +295,7 @@
                      :or   {max-delay 60
                             verbose   false}}]
   (log/setup-logging! {:verbose verbose})
-  (timbre/info {:event "server-starting"})
+  (log/info! {:event "server-starting"})
   (ring/ring-handler
    (ring/router [["/api"
                   ["/v2" {:middleware [keywordize-headers

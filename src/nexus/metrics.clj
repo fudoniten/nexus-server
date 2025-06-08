@@ -28,6 +28,6 @@
             (histograms/update! (metrics/histogram "response-size") (Long/parseLong res-size)))
           response)
         (catch Exception e
-          (log/error e "Error in timed request")
+          (log/warn! e "Error in timed request")
           (metrics/inc! (metrics/counter "error-counter"))
           (throw e))))))
