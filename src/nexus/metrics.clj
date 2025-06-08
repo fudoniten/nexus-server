@@ -5,6 +5,7 @@
             [nexus.logging :as log]
             [iapetos.core :as prometheus]
             [iapetos.collector.jvm :as jvm]
+            [iapetos.collector.jvm :as jvm]
             [iapetos.collector.ring :as ring]
             [iapetos.export :as export]))
 
