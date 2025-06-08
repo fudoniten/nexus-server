@@ -3,14 +3,13 @@
             [metrics.timers :as timers]
             [metrics.histograms :as histograms]
             [nexus.logging :as log]
-            [taoensso.timbre :as timbre]
             [iapetos.core :as prometheus]
             [iapetos.collector.jvm :as jvm]
             [iapetos.collector.ring :as ring]
             [iapetos.export :as export]))
 
 (defn initialize-metrics []
-  (log/info! "Initializing Nexus metrics")
+  (log/info "Initializing Nexus metrics")
   (-> (prometheus/collector-registry)
       (jvm/initialize)
       (ring/initialize)))
@@ -29,5 +28,6 @@
             (histograms/update! (metrics/histogram "response-size") (Long/parseLong res-size)))
           response)
         (catch Exception e
+          (log/error e "Error in timed request")
           (metrics/inc! (metrics/counter "error-counter"))
           (throw e))))))
