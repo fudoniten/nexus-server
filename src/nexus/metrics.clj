@@ -10,10 +10,10 @@
 
 (defn initialize-metrics []
   (log/info! "Initializing Nexus metrics")  
-  (-> (prometheus/collector-registry)
-      (jvm/initialize)
-      (ring/initialize)
-      (counters/counter "error-counter")))
+  (let [registry (com.codahale.metrics.MetricRegistry.)]
+    (jvm/instrument-jvm! registry)
+    (counters/counter registry "error-counter")
+    registry))
 
 (defn metrics-handler [registry]
   (export/text-format registry))
@@ -21,9 +21,9 @@
 (defn time-request [registry]
   (fn [handler]
     (fn [request]
-      (timers/time! (timers/timer registry "request-timer")
+      (let [timer (timers/timer registry "request-timer")]
         (try
-          (let [response (handler request)]
+          (let [response (timers/time! timer (handler request))]
             (when-let [req-size (get-in request [:headers "content-length"])]
               (histograms/update! (histograms/histogram registry "request-size") (Long/parseLong req-size)))
             (when-let [res-size (get-in response [:headers "content-length"])]
