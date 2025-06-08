@@ -295,15 +295,16 @@
              host-mapper]
       :or   {max-delay 60
              verbose   false}}]
-  (log/setup-logging! {:verbose verbose})
-  (log/info! {:event "server-starting"})
-  (ring/ring-handler
-   (ring/router [["/api"
-                  ["/v2" {:middleware [keywordize-headers
-                                       decode-body 
-                                       encode-body
-                                       (log-requests verbose)
-                                       (metrics/time-request metrics-registry)]}
+  (let [metrics-registry (metrics/initialize-metrics)]
+    (log/setup-logging! {:verbose verbose})
+    (log/info! {:event "server-starting"})
+    (ring/ring-handler
+     (ring/router [["/api"
+                    ["/v2" {:middleware [keywordize-headers
+                                         decode-body 
+                                         encode-body
+                                         (log-requests verbose)
+                                         (metrics/time-request metrics-registry)]}
                    ["/health"  {:get {:handler (fn [_] {:status 200 :body "ok"})}}]
                    ["/domain/:domain"
                     ["/challenges" {:middleware [(make-challenge-signature-authenticator verbose challenge-authenticator)
