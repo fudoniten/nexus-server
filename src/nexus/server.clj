@@ -263,7 +263,7 @@
         (let [timestamp (-> access-timestamp
                             (Integer/parseInt))
               current-timestamp (current-epoch-timestamp)
-              time-diff (abs (- (pthru "REPORTED" timestamp) (pthru "ACTUAL" current-timestamp)))]
+              time-diff (abs (- timestamp current-timestamp))]
           (log/info! {:event "timing-validation"
                       :timestamp timestamp
                       :current-timestamp current-timestamp
