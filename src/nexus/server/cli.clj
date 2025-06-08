@@ -1,5 +1,6 @@
 (ns nexus.server.cli
-  (:require [nexus.server :as server]
+  (:require [clojure.java.io :as io]
+            [nexus.server :as server]
             [clojure.tools.cli :as cli]
             [clojure.string :as str]
             [nexus.sql-datastore :as sql-store]
@@ -90,14 +91,14 @@
   "Validate the configuration options"
   [options]
   (let [errors (cond-> []
-                 (not (fs/exists? (:host-keys options)))
+                 (not (file-exists? (:host-keys options)))
                  (conj "host-keys file does not exist")
 
-                 (not (fs/exists? (:challenge-keys options)))
+                 (not (file-exists? (:challenge-keys options)))
                  (conj "challenge-keys file does not exist")
 
                  (and (:host-alias-map options)
-                      (not (fs/exists? (:host-alias-map options))))
+                      (not (file-exists? (:host-alias-map options))))
                  (conj "host-alias-map file does not exist"))]
     (if (seq errors)
       (assoc options :errors errors)
@@ -165,3 +166,6 @@
       (let [metrics-registry (metrics/initialize-metrics)
             app (initialize-app (assoc config :metrics-registry metrics-registry))]
         (start-server! app config)))))
+
+(defn file-exists? [filename]
+  (.exists (io/file filename)))
