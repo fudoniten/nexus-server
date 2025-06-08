@@ -259,12 +259,14 @@
       (if (nil? access-timestamp)
         { :status 406 :body "rejected: missing request timestamp" }
         (let [timestamp (-> access-timestamp
-                            (Integer/parseInt)
-                            (parse-epoch-timestamp)
-                            (.getEpochSecond))
+                            (Integer/parseInt))
               current-timestamp (current-epoch-timestamp)
               time-diff (abs (- timestamp current-timestamp))]
-          (println (format "DELAY IS: %s" time-diff))
+          (log/info! {:event "timing-validation"
+                      :timestamp timestamp
+                      :current-timestamp current-timestamp
+                      :time-diff time-diff
+                      :max-diff max-diff})
           (if (> time-diff max-diff)
             { :status 412 :body "rejected: request timestamp out of date" }
             (handler req)))))))
