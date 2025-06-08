@@ -38,12 +38,7 @@
      :error (.getMessage error)
      :error-type (-> error class .getName)}
     context)))
-(defn info!
-  "Log an info message"
-  [& args]
-  (apply timbre/info args))
 
-(defn warn!
-  "Log a warning message"
-  [& args]  
-  (apply timbre/warn args))
+(def info! timbre/info)
+
+(def warn! timbre/warn)
