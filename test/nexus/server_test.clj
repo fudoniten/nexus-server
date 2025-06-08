@@ -1,7 +1,8 @@
 (ns nexus.server-test
   (:require [nexus.server :as srv]
             [nexus.datastore :as ds]
-            [clojure.test :as t :refer [deftest is testing]]
+            [nexus.host-alias-map :as mapper]
+            [clojure.test :as t :refer [deftest is testing run-tests]]
             [ring.mock.request :as ring]
             [clojure.string :as str]
             [fudo-clojure.common :refer [current-epoch-timestamp base64-encode-string]]
@@ -9,8 +10,6 @@
             [nexus.authenticator :as auth]
             [clojure.data.json :as json])
   (:import javax.crypto.Mac))
-
-(defn- pthru [o] (clojure.pprint/pprint o) o)
 
 (defn- make-datastore [data]
   (reify ds/IDataStore
@@ -73,52 +72,59 @@
         (ring/header :access-timestamp timestamp)
         (ring/header :access-signature sig))))
 
+(defn pthru [o] (println (format "GOT: %s" o)) o)
+
 (deftest get-failures
   (let [datastore (make-datastore {})
         host-keys {:host0 (gen-key)
                    :host1 (gen-key)
                    :host2 (gen-key)}
-        auther (auth/make-authenticator host-keys)
-        app    (srv/create-app :authenticator auther
+        mapper (reify mapper/IHostAliasMap
+                 (get-host [_ host _] (keyword host)))
+        auther (auth/make-authenticator host-keys false)
+        app    (srv/create-app :host-authenticator auther
                                :data-store    datastore
+                               :host-mapper   mapper
                                :max-delay     5)]
     (testing "missing-timestamp"
-      (is (= (-> (app (ring/request :get "/api/test.com/host0/ipv4"))
+      (is (= (-> (app (ring/request :get "/api/v2/domain/test.com/host/host0/ipv4"))
                  :status)
              406)))
 
     (testing "old-timestamp"
-      (is (= (-> (app (-> (ring/request :get "/api/test.com/host0/ipv4")
-                          (ring/header  :access-timestamp (- (current-epoch-timestamp) 5000))))
+      (is (= (-> (app (-> (ring/request :get "/api/v2/domain/test.com/host/host0/ipv4")
+                          (ring/header  :access-timestamp (- (current-epoch-timestamp) 5000))
+                          (sign-request (:host0 host-keys))))
+                 (pthru)
                  :status)
              412)))
 
     (testing "missing-signature"
-      (is (= (-> (app (-> (ring/request :get "/api/test.com/host0/ipv4")
+      (is (= (-> (app (-> (ring/request :get "/api/v2/domain/test.com/host/host0/ipv4")
                           (ring/header  :access-timestamp (current-epoch-timestamp))))
                  :status)
              406)))
 
     (testing "invalid-signature"
-      (is (= (-> (app (-> (ring/request :get "/api/test.com/host0/ipv4")
+      (is (= (-> (app (-> (ring/request :get "/api/v2/domain/test.com/host/host0/ipv4")
                           (sign-request (:host1 host-keys))))
                  :status)
              401)))
 
     (testing "missing-host-key"
-      (is (= (-> (app (-> (ring/request :get "/api/test.com/host-missing/ipv4")
+      (is (= (-> (app (-> (ring/request :get "/api/v2/domain/test.com/host/host-missing/ipv4")
                           (sign-request (:host0 host-keys))))
                  :status)
              404)))
 
     (testing "missing-domain"
-      (is (= (-> (app (-> (ring/request :get "/api/oops.com/host0/ipv4")
+      (is (= (-> (app (-> (ring/request :get "/api/v2/domain/oops.com/host/host0/ipv4")
                           (sign-request (:host0 host-keys))))
                  :status)
              404)))
 
     (testing "missing-host"
-      (is (= (-> (app (-> (ring/request :get "/api/oops.com/host-missing/ipv4")
+      (is (= (-> (app (-> (ring/request :get "/api/v2/domain/oops.com/host/host-missing/ipv4")
                           (sign-request (:host0 host-keys))))
                  :status)
              404)))
@@ -141,36 +147,39 @@
         host-keys {:host0 (gen-key)
                    :host1 (gen-key)
                    :host2 (gen-key)}
-        auther (auth/make-authenticator host-keys)
-        app    (srv/create-app :authenticator auther
+        auther (auth/make-authenticator host-keys true)
+        mapper (reify mapper/IHostAliasMap
+                 (get-host [_ host _] (keyword host)))
+        app    (srv/create-app :host-authenticator auther
                                :data-store    datastore
+                               :host-mapper   mapper
                                :max-delay     5)]
     (testing "get-ipv4-status"
-      (is (= (-> (app (-> (ring/request :get "/api/test.com/host0/ipv4")
+      (is (= (-> (app (-> (ring/request :get "/api/v2/domain/test.com/host/host0/ipv4")
                           (sign-request (:host0 host-keys))))
                  :status)
              200)))
 
     (testing "get-ipv4"
-      (is (= (-> (app (-> (ring/request :get "/api/test.com/host0/ipv4")
+      (is (= (-> (app (-> (ring/request :get "/api/v2/domain/test.com/host/host0/ipv4")
                           (sign-request (:host0 host-keys))))
                  :body)
              (json/write-str ipv4))))
 
     (testing "get-ipv6-status"
-      (is (= (-> (app (-> (ring/request :get "/api/test.com/host0/ipv6")
+      (is (= (-> (app (-> (ring/request :get "/api/v2/domain/test.com/host/host0/ipv6")
                           (sign-request (:host0 host-keys))))
                  :status)
              200)))
 
     (testing "get-ipv6"
-      (is (= (-> (app (-> (ring/request :get "/api/test.com/host0/ipv6")
+      (is (= (-> (app (-> (ring/request :get "/api/v2/domain/test.com/host/host0/ipv6")
                           (sign-request (:host0 host-keys))))
                  :body)
              (json/write-str ipv6))))
 
     (testing "get-sshfps"
-      (is (= (-> (app (-> (ring/request :get "/api/test.com/host0/sshfps")
+      (is (= (-> (app (-> (ring/request :get "/api/v2/domain/test.com/host/host0/sshfps")
                           (sign-request (:host0 host-keys))))
                  :body)
              (json/write-str sshfps))))))
@@ -180,26 +189,29 @@
         host-keys {:host0 (gen-key)
                    :host1 (gen-key)
                    :host2 (gen-key)}
-        auther (auth/make-authenticator host-keys)
-        app    (srv/create-app :authenticator auther
+        mapper (reify mapper/IHostAliasMap
+                 (get-host [_ host _] (keyword host)))
+        auther (auth/make-authenticator host-keys false)
+        app    (srv/create-app :host-authenticator auther
                                :data-store    datastore
+                               :host-mapper   mapper
                                :max-delay     5)]
     (testing "set-ipv4-status"
-      (is (= (-> (app (-> (ring/request :put "/api/test.com/host0/ipv4")
+      (is (= (-> (app (-> (ring/request :put "/api/v2/domain/test.com/host/host0/ipv4")
                           (ring/body (json/write-str "1.1.1.1"))
                           (sign-request (:host0 host-keys))))
                  :status)
              200)))
 
     (testing "set-ipv6-status"
-      (is (= (-> (app (-> (ring/request :put "/api/test.com/host0/ipv6")
+      (is (= (-> (app (-> (ring/request :put "/api/v2/domain/test.com/host/host0/ipv6")
                           (ring/body (json/write-str "1::1"))
                           (sign-request (:host0 host-keys))))
                  :status)
              200)))
 
     (testing "set-sshfps-status"
-      (is (= (-> (app (-> (ring/request :put "/api/test.com/host0/sshfps")
+      (is (= (-> (app (-> (ring/request :put "/api/v2/domain/test.com/host/host0/sshfps")
                           (ring/body (json/write-str (repeatedly (+ 1 (rand-int 4))
                                                                  #(gen-sshfp))))
                           (sign-request (:host0 host-keys))))
@@ -211,12 +223,15 @@
         host-keys {:host0 (gen-key)
                    :host1 (gen-key)
                    :host2 (gen-key)}
-        auther (auth/make-authenticator host-keys)
-        app    (srv/create-app :authenticator auther
+        auther (auth/make-authenticator host-keys false)
+        mapper (reify mapper/IHostAliasMap
+                 (get-host [_ host _] (keyword host)))
+        app    (srv/create-app :host-authenticator auther
                                :data-store    datastore
+                               :host-mapper   mapper
                                :max-delay     5)]
     (testing "bad-signature"
-      (is (= (-> (app (-> (ring/request :put "/api/test.com/host0/ipv4")
+      (is (= (-> (app (-> (ring/request :put "/api/v2/domain/test.com/host/host0/ipv4")
                           (ring/body (json/write-str "1.1.1.1"))
                           (sign-request (:host0 host-keys))
                           (ring/header :access-signature "ouidnaouidnaouidnadouindaoui")))
@@ -224,8 +239,10 @@
              401)))
 
     (testing "wrong-host"
-      (is (= (-> (app (-> (ring/request :put "/api/test.com/host0/ipv4")
+      (is (= (-> (app (-> (ring/request :put "/api/v2/domain/test.com/host/host0/ipv4")
                           (ring/body (json/write-str "1.1.1.1"))
                           (sign-request (:host1 host-keys))))
                  :status)
              401)))))
+
+(run-tests)
