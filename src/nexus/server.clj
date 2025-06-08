@@ -250,6 +250,8 @@
            (println "matching key not found, rejecting request")
            { :status 404 :body (str "rejected: missing key for host") }))))))
 
+(defn pthru [msg o] (println (format "%s: %s" msg o)) o)
+
 (defn- make-timing-validator
   "Create middleware to validate request timestamps are within a max difference"
   [max-diff]
@@ -259,10 +261,9 @@
       (if (nil? access-timestamp)
         { :status 406 :body "rejected: missing request timestamp" }
         (let [timestamp (-> access-timestamp
-                            (Integer/parseInt)
-                            (* 1000))
+                            (Integer/parseInt))
               current-timestamp (current-epoch-timestamp)
-              time-diff (abs (- timestamp current-timestamp))]
+              time-diff (abs (- (pthru "REPORTED" timestamp) (pthru "ACTUAL" current-timestamp)))]
           (log/info! {:event "timing-validation"
                       :timestamp timestamp
                       :current-timestamp current-timestamp
