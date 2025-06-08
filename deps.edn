@@ -16,7 +16,7 @@
         com.taoensso/timbre { :mvn/version "6.7.0" }
         io.prometheus/simpleclient_hotspot { :mvn/version "0.16.0" }
         io.prometheus/simpleclient_httpserver { :mvn/version "0.16.0" }
-        iapetos/iapetos { :mvn/version "0.1.9" }
+        clj-commons/iapetos { :mvn/version "0.1.14" }
 
         org.fudo/nexus.crypto {
                                :git/url "https://github.com/fudoniten/nexus-crypto.git"

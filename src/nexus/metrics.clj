@@ -1,25 +1,26 @@
 (ns nexus.metrics
-  (:require [metrics.timers :as timers]
+  (:require [metrics.core :as metrics]
+            [metrics.timers :as timers]
             [metrics.counters :as counters]
             [metrics.histograms :as histograms]
             [nexus.logging :as log]
-            [iapetos.core :as prometheus]
-            [iapetos.collector.jvm :as jvm]
-            [iapetos.collector.jvm :as jvm]
-            [iapetos.collector.ring :as ring]
             [iapetos.export :as export]))
 
 (defn initialize-metrics []
   (log/info! "Initializing Nexus metrics")  
-  (let [registry (com.codahale.metrics.MetricRegistry.)]
-    (jvm/instrument-jvm! registry)
-    (counters/counter registry "error-counter")
-    registry))
+  (let [registry (metrics/new-registry)]
+    {
+     ::registry registry
+     ::counters {:errors (counters/counter registry "error-counter")}
+     }))
 
-(defn metrics-handler [registry]
+(defn get-counter [{counters ::counters} counter]
+  (get  counters counter))
+
+(defn metrics-handler [{registry ::registry}]
   (export/text-format registry))
 
-(defn time-request [registry]
+(defn time-request [{registry ::registry}]
   (fn [handler]
     (fn [request]
       (let [timer (timers/timer registry "request-timer")]
@@ -32,5 +33,5 @@
             response)
           (catch Exception e
             (log/warn! e "Error in timed request")
-            (counters/inc! registry "error-counter")
+            (counters/inc! (counters/counter registry "errors"))
             (throw e)))))))

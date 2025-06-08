@@ -26,9 +26,10 @@
 
 (defrecord HostAliasMap [alias-map]
   IHostAliasMap
-  (get-host [_ host domain] (get alias-map
-                                 (format "%s.%s" (name host) (name domain))
-                                 (keyword host))))
+  (get-host [_ host domain]
+    (get alias-map
+         (format "%s.%s" (name host) (name domain))
+         (keyword host))))
 
 (defn make-mapper
   "Create a HostAliasMap from a JSON file"

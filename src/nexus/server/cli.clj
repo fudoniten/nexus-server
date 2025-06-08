@@ -6,6 +6,7 @@
             [nexus.sql-datastore :as sql-store]
             [nexus.authenticator :as auth]
             [nexus.host-alias-map :as host-mapper]
+            [nexus.metrics :as metrics]
             [ring.adapter.jetty :refer [run-jetty]]
             [clojure.core.async :refer [chan >!! <!!]]
             [clojure.set :as set])
@@ -70,6 +71,9 @@
   [status msg]
   (println msg)
   (System/exit status))
+
+(defn file-exists? [filename]
+  (.exists (io/file filename)))
 
 (defn- parse-opts
   "Parse the command-line arguments using the specified options.
@@ -166,6 +170,3 @@
       (let [metrics-registry (metrics/initialize-metrics)
             app (initialize-app (assoc config :metrics-registry metrics-registry))]
         (start-server! app config)))))
-
-(defn file-exists? [filename]
-  (.exists (io/file filename)))

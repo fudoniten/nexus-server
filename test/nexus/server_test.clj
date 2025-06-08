@@ -62,7 +62,9 @@
     ""))
 
 (defn- sign-request [req key-str]
-  (let [timestamp (str (current-epoch-timestamp))
+  (let [timestamp (-> req
+                      (get-in [:headers "access-timestamp"])
+                      (or (str (current-epoch-timestamp))))
         req-str   (str (-> req :request-method (name) (str/upper-case))
                        (-> req :uri)
                        timestamp
@@ -71,8 +73,6 @@
     (-> req
         (ring/header :access-timestamp timestamp)
         (ring/header :access-signature sig))))
-
-(defn pthru [o] (println (format "GOT: %s" o)) o)
 
 (deftest get-failures
   (let [datastore (make-datastore {})
@@ -93,7 +93,7 @@
 
     (testing "old-timestamp"
       (is (= (-> (app (-> (ring/request :get "/api/v2/domain/test.com/host/host0/ipv4")
-                          (ring/header  :access-timestamp (str (* (- (current-epoch-timestamp) 120) 1000)))
+                          (ring/header  :access-timestamp (str (- (current-epoch-timestamp) 120)))
                           (sign-request (:host0 host-keys))))
                  :status)
              412)))

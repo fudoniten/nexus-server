@@ -37,19 +37,6 @@ See `config.edn` for the available configuration options. The server requires:
 - SQL database connection info
 - Authenticator configuration (API keys, etc)
 
-## Development
-
-Run locally with:
-
-```
-clojure -M:run
-```
-
-Run tests with:
-
-```
-clojure -M:test
-```
 ## Command-line Options
 
 The Nexus server CLI supports the following command-line options:
@@ -89,3 +76,17 @@ The Nexus server CLI supports the following command-line options:
 
 `-V, --version`
 : Print the current version.
+
+## Development
+
+Run locally with:
+
+```
+clojure -M:run
+```
+
+Run tests with:
+
+```
+clojure -M:test
+```

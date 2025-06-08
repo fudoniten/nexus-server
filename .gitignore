@@ -9,3 +9,5 @@ tmp/
 target/
 result
 .clj-kondo/
+.aider*
+.env
