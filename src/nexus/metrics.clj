@@ -1,6 +1,5 @@
 (ns nexus.metrics
-  (:require [metrics.core :as metrics]
-            [metrics.timers :as timers]
+  (:require [metrics.timers :as timers]
             [metrics.counters :as counters]
             [metrics.histograms :as histograms]
             [nexus.logging :as log]
