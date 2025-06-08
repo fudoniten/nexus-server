@@ -302,7 +302,7 @@
                                        decode-body 
                                        encode-body
                                        (log-requests verbose)
-                                       metrics/time-request]}
+                                       (metrics/time-request metrics-registry)]}
                    ["/health"  {:get {:handler (fn [_] {:status 200 :body "ok"})}}]
                    ["/domain/:domain"
                     ["/challenges" {:middleware [(make-challenge-signature-authenticator verbose challenge-authenticator)
