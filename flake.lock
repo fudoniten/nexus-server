@@ -11,15 +11,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1732920288,
-        "narHash": "sha256-w04hFhbutbob60xy6wUYdawBCVK0qAzBfhGsD+bPypU=",
+        "lastModified": 1732066389,
+        "narHash": "sha256-6z9KTXwDQN14vljs5USgb4Pr8BYk46Q2yhkcdNx9QEE=",
         "owner": "jlesquembre",
         "repo": "clj-nix",
-        "rev": "6e829214a303d2f921c7919f6fb7a2721069c608",
+        "rev": "95f26552686259f64685569e6966cdefebb0a6a9",
         "type": "github"
       },
       "original": {
         "owner": "jlesquembre",
+        "ref": "0.4.0",
         "repo": "clj-nix",
         "type": "github"
       }
@@ -58,15 +59,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1732920288,
-        "narHash": "sha256-w04hFhbutbob60xy6wUYdawBCVK0qAzBfhGsD+bPypU=",
+        "lastModified": 1732066389,
+        "narHash": "sha256-6z9KTXwDQN14vljs5USgb4Pr8BYk46Q2yhkcdNx9QEE=",
         "owner": "jlesquembre",
         "repo": "clj-nix",
-        "rev": "6e829214a303d2f921c7919f6fb7a2721069c608",
+        "rev": "95f26552686259f64685569e6966cdefebb0a6a9",
         "type": "github"
       },
       "original": {
         "owner": "jlesquembre",
+        "ref": "0.4.0",
         "repo": "clj-nix",
         "type": "github"
       }
@@ -96,7 +98,7 @@
       "inputs": {
         "flake-compat": "flake-compat_2",
         "gitignore": "gitignore_2",
-        "nixpkgs": "nixpkgs_2",
+        "nixpkgs": "nixpkgs_3",
         "utils": "utils_4"
       },
       "locked": {
@@ -117,7 +119,7 @@
       "inputs": {
         "flake-compat": "flake-compat_3",
         "gitignore": "gitignore_3",
-        "nixpkgs": "nixpkgs_3",
+        "nixpkgs": "nixpkgs_4",
         "utils": "utils_6"
       },
       "locked": {
@@ -313,11 +315,11 @@
         "utils": "utils_3"
       },
       "locked": {
-        "lastModified": 1737959222,
-        "narHash": "sha256-oyj0JWqw4A4Bm5YuCWDUPsXEEa3QXVy/RcZgOcZl+ws=",
+        "lastModified": 1770058369,
+        "narHash": "sha256-KGVIBpZuA/epaJSFwaGRx8GaZFEzRNjMRSc7o4TQ8XA=",
         "owner": "fudoniten",
         "repo": "fudo-clojure",
-        "rev": "2f808254ccb22af797625def12130a6fad735b1b",
+        "rev": "65bf45b72f783fe5c962c9d413685fbc0cd69779",
         "type": "github"
       },
       "original": {
@@ -398,6 +400,7 @@
       "inputs": {
         "clj-nix": "clj-nix",
         "clj2nix": "clj2nix",
+        "nix2container": "nix2container",
         "nixpkgs": [
           "fudo-clojure",
           "nixpkgs"
@@ -405,11 +408,11 @@
         "utils": "utils_2"
       },
       "locked": {
-        "lastModified": 1737951318,
-        "narHash": "sha256-E5Lgu5EVXi0auiYVvksmZpOvDKoUJivm+vcf12dUb6Y=",
+        "lastModified": 1770058348,
+        "narHash": "sha256-jqtOJhEOUCjJ8RoLkfejOlUyzSAHr6YHYwGXoUSnW5c=",
         "owner": "fudoniten",
         "repo": "fudo-nix-helpers",
-        "rev": "34a7dd0eebbcaf8c1e87edc016fb5873361d87b9",
+        "rev": "89ad3f7ca2cff121475794bde7c6e29e0e5169d1",
         "type": "github"
       },
       "original": {
@@ -445,6 +448,7 @@
       "inputs": {
         "clj-nix": "clj-nix_3",
         "clj2nix": "clj2nix_3",
+        "nix2container": "nix2container_2",
         "nixpkgs": [
           "nexus-crypto",
           "nixpkgs"
@@ -452,11 +456,11 @@
         "utils": "utils_7"
       },
       "locked": {
-        "lastModified": 1737951318,
-        "narHash": "sha256-E5Lgu5EVXi0auiYVvksmZpOvDKoUJivm+vcf12dUb6Y=",
+        "lastModified": 1770058348,
+        "narHash": "sha256-jqtOJhEOUCjJ8RoLkfejOlUyzSAHr6YHYwGXoUSnW5c=",
         "owner": "fudoniten",
         "repo": "fudo-nix-helpers",
-        "rev": "34a7dd0eebbcaf8c1e87edc016fb5873361d87b9",
+        "rev": "89ad3f7ca2cff121475794bde7c6e29e0e5169d1",
         "type": "github"
       },
       "original": {
@@ -474,11 +478,11 @@
         "utils": "utils_8"
       },
       "locked": {
-        "lastModified": 1737958965,
-        "narHash": "sha256-6uemVjqvYT0TLPGBGSwo5ApLKo+jb1OIE15i/BLTJ9o=",
+        "lastModified": 1770059009,
+        "narHash": "sha256-ySEzFLpHSGrRpPFhY/A+JAySq5dHqR7sEdt6WRHq4gY=",
         "owner": "fudoniten",
         "repo": "nexus-crypto",
-        "rev": "19cdb0651175a2f84dfe8d2ef9e74c686edcf37a",
+        "rev": "a8fed950bb99b8899bc1724bdd05160d50227788",
         "type": "github"
       },
       "original": {
@@ -558,6 +562,42 @@
         "type": "github"
       }
     },
+    "nix2container": {
+      "inputs": {
+        "nixpkgs": "nixpkgs_2"
+      },
+      "locked": {
+        "lastModified": 1767430085,
+        "narHash": "sha256-SiXJ6xv4pS2MDUqfj0/mmG746cGeJrMQGmoFgHLS25Y=",
+        "owner": "nlewo",
+        "repo": "nix2container",
+        "rev": "66f4b8a47e92aa744ec43acbb5e9185078983909",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nlewo",
+        "repo": "nix2container",
+        "type": "github"
+      }
+    },
+    "nix2container_2": {
+      "inputs": {
+        "nixpkgs": "nixpkgs_5"
+      },
+      "locked": {
+        "lastModified": 1767430085,
+        "narHash": "sha256-SiXJ6xv4pS2MDUqfj0/mmG746cGeJrMQGmoFgHLS25Y=",
+        "owner": "nlewo",
+        "repo": "nix2container",
+        "rev": "66f4b8a47e92aa744ec43acbb5e9185078983909",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nlewo",
+        "repo": "nix2container",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1673785507,
@@ -611,11 +651,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1673785507,
-        "narHash": "sha256-EPUT8yVdvJhhjhbgnFWXXd4IUPKSOmww2+z4AmOdyPI=",
+        "lastModified": 1767028467,
+        "narHash": "sha256-7G+2aXClSMaTY1ogpX14CAxjRsvyVzpE0GRwL71WO7g=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "d06d765eeac716d8f1ca80f0935fd6fc951816ad",
+        "rev": "1cabc318c11299f07ca53e3cb719854682fe6eb3",
         "type": "github"
       },
       "original": {
@@ -641,6 +681,36 @@
     },
     "nixpkgs_4": {
       "locked": {
+        "lastModified": 1673785507,
+        "narHash": "sha256-EPUT8yVdvJhhjhbgnFWXXd4IUPKSOmww2+z4AmOdyPI=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "d06d765eeac716d8f1ca80f0935fd6fc951816ad",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_5": {
+      "locked": {
+        "lastModified": 1767028467,
+        "narHash": "sha256-7G+2aXClSMaTY1ogpX14CAxjRsvyVzpE0GRwL71WO7g=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "1cabc318c11299f07ca53e3cb719854682fe6eb3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_6": {
+      "locked": {
         "lastModified": 1737885640,
         "narHash": "sha256-GFzPxJzTd1rPIVD4IW+GwJlyGwBDV1Tj5FLYwDQQ9sM=",
         "owner": "NixOS",
@@ -659,7 +729,7 @@
         "fudo-clojure": "fudo-clojure",
         "helpers": "helpers_2",
         "nexus-crypto": "nexus-crypto",
-        "nixpkgs": "nixpkgs_4",
+        "nixpkgs": "nixpkgs_6",
         "utils": "utils_9"
       }
     },

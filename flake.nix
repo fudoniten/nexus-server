@@ -25,9 +25,9 @@
 
         cljLibs = {
           "org.fudo/fudo-clojure" =
-            fudo-clojure.packages."${system}".fudo-clojure;
+            fudo-clojure.packages."${system}".fudo-clojure.preppedSrc;
           "org.fudo/nexus.crypto" =
-            nexus-crypto.packages."${system}".nexus-crypto;
+            nexus-crypto.packages."${system}".nexus-crypto.preppedSrc;
         };
       in {
         packages = rec {
